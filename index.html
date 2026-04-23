@@ -8,7 +8,6 @@
         * { box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1e1e1e; margin: 0; display: flex; flex-direction: column; height: 100vh; color: #f0f0f0; overflow: hidden; }
         
-        /* Barra de Ferramentas Principal */
         .toolbar { background: #111; padding: 10px 20px; display: flex; gap: 10px; align-items: center; border-bottom: 1px solid #333; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.5); flex-wrap: wrap; }
         .toolbar h1 { margin: 0 15px 0 0; font-size: 1.1rem; color: #007bff; letter-spacing: 1px; }
         
@@ -26,10 +25,8 @@
         .file-label { background: #222; color: #ccc; border: 1px solid #444; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 12px; }
         .file-label:hover { background: #333; }
 
-        /* Área do Visualizador */
         #viewer-container { flex-grow: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; gap: 40px; background: #2d2d2d; }
         
-        /* Contêiner da Página e Overlays */
         .page-container { position: relative; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.8); transition: transform 0.2s; }
         .interaction-layer { position: absolute; inset: 0; z-index: 10; cursor: default; }
         .interaction-layer.draw-mode { cursor: crosshair; }
@@ -39,10 +36,9 @@
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #007bff; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Tarjas e Cores */
         .tarja { position: absolute; z-index: 20; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; border-radius: 2px; }
-        .tarja.regex { background: rgba(0, 123, 255, 0.45); border-color: #007bff; } /* Estrutural: Azul */
-        .tarja.ai { background: rgba(153, 50, 204, 0.45); border-color: #9932cc; } /* IA Nomes: Roxo */
+        .tarja.regex { background: rgba(0, 123, 255, 0.45); border-color: #007bff; } 
+        .tarja.ai { background: rgba(153, 50, 204, 0.45); border-color: #9932cc; } 
         .tarja.manual { background: rgba(0, 0, 0, 0.75); border-color: #000; }
         .tarja.drawing { background: rgba(255, 193, 7, 0.3); border: 2px dashed #ffc107; }
         
@@ -50,7 +46,6 @@
         .tarja:hover { outline: 2px solid #ffc107; z-index: 25; }
         .tarja:hover .tarja-remove { display: block; }
 
-        /* Rodapé Profissional */
         #footer { background: #111; border-top: 1px solid #333; display: flex; flex-direction: column; z-index: 100; }
         #progress-container { width: 100%; height: 4px; background: #222; display: none; }
         #progress-bar { width: 0%; height: 100%; background: #007bff; transition: width 0.2s; }
@@ -58,7 +53,6 @@
         .status-panel { padding: 8px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #aaa; }
         .status-left { display: flex; align-items: center; gap: 10px; }
         
-        /* Indicadores de Estado da IA */
         .indicator { width: 10px; height: 10px; border-radius: 50%; background: #444; }
         .indicator.loading { background: #ffc107; box-shadow: 0 0 8px #ffc107; animation: pulse 1.5s infinite; }
         .indicator.ready { background: #28a745; box-shadow: 0 0 8px #28a745; }
@@ -117,7 +111,6 @@
     <script type="module">
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        // --- Regras Precisas (Regex) ---
         const PATTERNS = {
             CPF: /\b\d{3}\.\d{3}\.\d{3}-\d{2}\b|\b\d{11}\b/g,
             RG: /\b\d{1,2}\.\d{3}\.\d{3}-[\dX]\b/gi,
@@ -126,38 +119,24 @@
             Endereco: /\b(Rua|Avenida|Av\.|Travessa|Bairro|Alameda|Rodovia|Rod\.)\b\s+[^,\.\n\r]+/gi
         };
 
-        // --- Estado da Aplicação ---
         const state = {
-            pdfDoc: null,
-            pagesData: [],
-            mode: 'view',
-            scale: 1.5,
-            isDrawing: false,
-            startX: 0, startY: 0, currentTarja: null,
-            isProcessing: false,
-            cancelRequested: false
+            pdfDoc: null, pagesData: [], mode: 'view', scale: 1.5,
+            isDrawing: false, startX: 0, startY: 0, currentTarja: null,
+            isProcessing: false, cancelRequested: false
         };
 
         const UI = {
-            fileInput: document.getElementById('file-input'),
-            lblFile: document.getElementById('lbl-file'),
-            btnClear: document.getElementById('btn-clear'),
-            btnView: document.getElementById('btn-mode-view'),
-            btnDraw: document.getElementById('btn-mode-draw'),
-            btnZoomIn: document.getElementById('btn-zoom-in'),
-            btnZoomOut: document.getElementById('btn-zoom-out'),
-            btnCancel: document.getElementById('btn-cancel'),
-            btnExport: document.getElementById('btn-export'),
-            viewer: document.getElementById('viewer-container'),
-            welcomeMsg: document.getElementById('welcome-msg'),
-            aiIndicator: document.getElementById('ai-indicator'),
-            aiStatusText: document.getElementById('ai-status-text'),
-            sysStatusText: document.getElementById('sys-status-text'),
-            progContainer: document.getElementById('progress-container'),
-            progBar: document.getElementById('progress-bar')
+            fileInput: document.getElementById('file-input'), lblFile: document.getElementById('lbl-file'),
+            btnClear: document.getElementById('btn-clear'), btnView: document.getElementById('btn-mode-view'),
+            btnDraw: document.getElementById('btn-mode-draw'), btnZoomIn: document.getElementById('btn-zoom-in'),
+            btnZoomOut: document.getElementById('btn-zoom-out'), btnCancel: document.getElementById('btn-cancel'),
+            btnExport: document.getElementById('btn-export'), viewer: document.getElementById('viewer-container'),
+            welcomeMsg: document.getElementById('welcome-msg'), aiIndicator: document.getElementById('ai-indicator'),
+            aiStatusText: document.getElementById('ai-status-text'), sysStatusText: document.getElementById('sys-status-text'),
+            progContainer: document.getElementById('progress-container'), progBar: document.getElementById('progress-bar')
         };
 
-        // --- GERENCIAMENTO DO WEB WORKER (IA) ---
+        // --- WEB WORKER (IA) ---
         let aiWorker = null;
 
         const workerCode = `
@@ -167,19 +146,16 @@
 
             self.onmessage = async (e) => {
                 const { type, text, pageIndex } = e.data;
-
                 if (type === 'init') {
                     try {
                         nerPipeline = await pipeline('token-classification', 'Xenova/bert-base-multilingual-cased-ner-hrl', {
-                            quantized: true,
-                            progress_callback: (p) => self.postMessage({ type: 'progress', progress: p })
+                            quantized: true, progress_callback: (p) => self.postMessage({ type: 'progress', progress: p })
                         });
                         self.postMessage({ type: 'ready' });
                     } catch (err) {
                         self.postMessage({ type: 'error', msg: err.message });
                     }
                 }
-
                 if (type === 'analyze') {
                     if (!nerPipeline) return;
                     const entities = await nerPipeline(text);
@@ -192,10 +168,33 @@
             };
         `;
 
+        function fallbackBasico(motivo) {
+            UI.aiIndicator.className = 'indicator error';
+            UI.aiStatusText.textContent = "Modo Básico Ativo (Sem IA)";
+            UI.progContainer.style.display = 'none';
+            UI.fileInput.disabled = false; 
+            console.warn(motivo);
+            
+            if(state.pdfDoc === null) {
+                UI.welcomeMsg.innerHTML = `
+                    <h2 style="color: #dc3545;">Modo Básico Ativado</h2>
+                    <p>A Inteligência Artificial falhou ao iniciar.</p>
+                    <p style="font-size: 12px; color: #888;">Motivo: ${motivo}</p>
+                    <p>O sistema operará apenas com a detecção estrutural (CPF, CEP) e tarjas manuais. <b>Selecione um PDF para continuar.</b></p>
+                `;
+            }
+        }
+
         function spawnWorker() {
-            if (aiWorker) aiWorker.terminate(); // Mata o worker anterior se existir
+            if (aiWorker) aiWorker.terminate(); 
             const blob = new Blob([workerCode], { type: 'application/javascript' });
-            aiWorker = new Worker(URL.createObjectURL(blob), { type: 'module' });
+            
+            try {
+                aiWorker = new Worker(URL.createObjectURL(blob), { type: 'module' });
+            } catch(e) {
+                fallbackBasico("O navegador não suporta módulos em background.");
+                return;
+            }
             
             aiWorker.postMessage({ type: 'init' });
 
@@ -204,7 +203,7 @@
 
                 if (type === 'progress') {
                     UI.progContainer.style.display = 'block';
-                    if (progress.status === 'progress') UI.progBar.style.width = \`\${progress.progress}%\`;
+                    if (progress.status === 'progress') UI.progBar.style.width = `${progress.progress}%`;
                 }
                 
                 if (type === 'ready') {
@@ -218,30 +217,28 @@
                 }
 
                 if (type === 'result') {
-                    if (state.cancelRequested) return; // Ignora se foi cancelado
+                    if (state.cancelRequested) return; 
                     applyHybridResults(pageIndex, names);
-                    processNextPage(pageIndex + 1); // Chama a próxima página
+                    processNextPage(pageIndex + 1); 
                 }
 
                 if (type === 'error') {
-                    UI.aiIndicator.className = 'indicator error';
-                    UI.aiStatusText.textContent = "Erro na IA: " + msg;
+                    fallbackBasico("Erro de conexão na IA: " + msg);
                 }
+            };
+
+            aiWorker.onerror = (err) => {
+                fallbackBasico("Acesso bloqueado. Verifique se está usando Localhost ou se o Firewall bloqueou o script.");
             };
         }
         
-        // Inicia a IA ao abrir a página
         spawnWorker();
 
-        // --- FLUXO DE CONTROLE DA UI ---
-        
+        // --- UI E EVENTOS ---
         function setUIState(enabled) {
-            UI.btnView.disabled = !enabled;
-            UI.btnDraw.disabled = !enabled;
-            UI.btnZoomIn.disabled = !enabled;
-            UI.btnZoomOut.disabled = !enabled;
-            UI.btnExport.disabled = !enabled;
-            UI.btnClear.disabled = !enabled;
+            UI.btnView.disabled = !enabled; UI.btnDraw.disabled = !enabled;
+            UI.btnZoomIn.disabled = !enabled; UI.btnZoomOut.disabled = !enabled;
+            UI.btnExport.disabled = !enabled; UI.btnClear.disabled = !enabled;
         }
 
         UI.btnView.onclick = () => setMode('view');
@@ -256,78 +253,57 @@
             });
         }
 
-        // AÇÃO: Limpar Documento
         UI.btnClear.onclick = () => {
-            state.pdfDoc = null;
-            state.pagesData = [];
-            state.cancelRequested = false;
-            UI.viewer.innerHTML = '';
-            UI.fileInput.value = ''; // Reseta o input file
+            state.pdfDoc = null; state.pagesData = []; state.cancelRequested = false;
+            UI.viewer.innerHTML = ''; UI.fileInput.value = ''; 
             UI.viewer.appendChild(UI.welcomeMsg);
             UI.welcomeMsg.innerHTML = "<h2>Área Limpa</h2><p>Memória liberada. Selecione um novo PDF.</p>";
             UI.sysStatusText.textContent = "Sistema Ocioso";
             setUIState(false);
         };
 
-        // AÇÃO: Cancelar Processamento
         UI.btnCancel.onclick = () => {
             if (state.isProcessing) {
-                state.cancelRequested = true;
-                state.isProcessing = false;
-                
-                // TRUE ABORT: Mata a IA na força para liberar a CPU
-                aiWorker.terminate(); 
-                spawnWorker(); // Recria a IA para o próximo uso (carrega instantâneo via cache)
-                
-                // Limpa o visual de carregamento de todas as páginas
+                state.cancelRequested = true; state.isProcessing = false;
+                aiWorker.terminate(); spawnWorker(); 
                 state.pagesData.forEach(p => p.container.classList.remove('processing'));
-                
                 UI.btnCancel.style.display = 'none';
-                UI.sysStatusText.textContent = "Processamento Cancelado pelo Usuário.";
-                setUIState(true); // Devolve o controle ao usuário
+                UI.sysStatusText.textContent = "Processamento Cancelado.";
+                setUIState(true); 
             }
         };
 
-        // --- CARREGAMENTO DO PDF ---
         UI.fileInput.onchange = async (e) => {
             const file = e.target.files[0];
             if (!file) return;
             
-            UI.btnClear.click(); // Limpa resíduos anteriores
+            UI.btnClear.click(); 
             UI.viewer.innerHTML = '';
             UI.sysStatusText.textContent = "Lendo estrutura do PDF...";
             
             const buffer = await file.arrayBuffer();
             state.pdfDoc = await pdfjsLib.getDocument({ data: buffer }).promise;
             
-            for (let i = 1; i <= state.pdfDoc.numPages; i++) {
-                await buildPageContainer(i);
-            }
+            for (let i = 1; i <= state.pdfDoc.numPages; i++) await buildPageContainer(i);
             
-            // Inicia o processamento em lote controlável
-            state.cancelRequested = false;
-            state.isProcessing = true;
+            state.cancelRequested = false; state.isProcessing = true;
             UI.btnCancel.style.display = 'flex';
-            setUIState(false); // Bloqueia botões durante análise inicial
-            
-            processNextPage(0); // Começa da página 0
+            setUIState(false); 
+            processNextPage(0); 
         };
 
         async function buildPageContainer(num) {
             const page = await state.pdfDoc.getPage(num);
             const viewport = page.getViewport({ scale: state.scale });
-
             const container = document.createElement('div');
-            container.className = 'page-container processing'; // Já nasce com spinner
+            container.className = 'page-container processing'; 
             container.style.width = viewport.width + 'px';
             container.style.height = viewport.height + 'px';
-
             container.innerHTML = `
-                <canvas width="\${viewport.width}" height="\${viewport.height}"></canvas>
+                <canvas width="${viewport.width}" height="${viewport.height}"></canvas>
                 <div class="interaction-layer"></div>
                 <div class="page-loader"><div class="spinner"></div><div style="margin-top:15px; color:white; font-weight:bold;">Aguardando IA...</div></div>
             `;
-            
             UI.viewer.appendChild(container);
 
             const canvas = container.querySelector('canvas');
@@ -335,42 +311,28 @@
             const layer = container.querySelector('.interaction-layer');
 
             state.pagesData.push({ num, viewport, container, canvas, ctx, layer, textItems: null });
-
-            // Renderiza visualmente (Rápido)
             await page.render({ canvasContext: ctx, viewport }).promise;
             
-            // Extrai texto para a memória
             const textContent = await page.getTextContent();
             state.pagesData[num-1].textItems = textContent.items;
-            
             setupManualDrawing(layer);
         }
 
-        // --- LOOP DE PROCESSAMENTO (Página por Página) ---
         function processNextPage(index) {
             if (state.cancelRequested) return;
-
             if (index >= state.pagesData.length) {
-                // Fim do documento
-                state.isProcessing = false;
-                UI.btnCancel.style.display = 'none';
-                UI.sysStatusText.textContent = \`Análise Concluída (\${state.pagesData.length} páginas).\`;
-                setUIState(true);
-                return;
+                state.isProcessing = false; UI.btnCancel.style.display = 'none';
+                UI.sysStatusText.textContent = `Análise Concluída (${state.pagesData.length} páginas).`;
+                setUIState(true); return;
             }
-
             const pageData = state.pagesData[index];
-            UI.sysStatusText.textContent = \`IA Analisando página \${index + 1} de \${state.pagesData.length}...\`;
-            
-            // Pega o texto da página atual e manda pro Worker
+            UI.sysStatusText.textContent = `IA Analisando página ${index + 1} de ${state.pagesData.length}...`;
             const fullText = pageData.textItems.map(i => i.str).join(' ');
             aiWorker.postMessage({ type: 'analyze', text: fullText, pageIndex: index });
         }
 
-        // --- MATEMÁTICA DE PRECISÃO (Unindo V8 e V9) ---
         function applyHybridResults(pageIndex, aiNames) {
             const pageData = state.pagesData[pageIndex];
-            
             pageData.textItems.forEach(item => {
                 const text = item.str;
                 if (!text.trim()) return;
@@ -380,7 +342,6 @@
                 const height = item.height || Math.abs(tx[3]);
                 const offsetY = height * 0.85;
 
-                // 1. Checa Regex Estrutural (CPF, CNPJ) -> Tarja Azul
                 for (const key in PATTERNS) {
                     const matches = [...text.matchAll(PATTERNS[key])];
                     for (const match of matches) {
@@ -390,63 +351,49 @@
                     }
                 }
 
-                // 2. Checa Nomes da IA -> Tarja Roxa
                 aiNames.forEach(name => {
                     const startIndex = text.indexOf(name);
                     if (startIndex !== -1) {
-                        // O nome inteiro está dentro deste item geométrico
                         const startX = tx[4] + (totalWidth * (startIndex / text.length));
                         const tarjaWidth = totalWidth * (name.length / text.length);
                         addTarja(pageData.layer, startX, tx[5] - offsetY, tarjaWidth, height, 'ai');
                     } else if (name.includes(text.trim()) && text.trim().length > 3) {
-                        // Fragmentação: A palavra do PDF é apenas um PEDAÇO do nome que a IA achou
                         addTarja(pageData.layer, tx[4], tx[5] - offsetY, totalWidth, height, 'ai');
                     }
                 });
             });
-
-            // Remove o Overlay de Carregamento daquela página
             pageData.container.classList.remove('processing');
         }
 
         function addTarja(layer, x, y, w, h, type) {
             const padX = 4, padY = 2;
             const t = document.createElement('div');
-            t.className = \`tarja \${type}\`;
-            t.style.left = (x - padX) + 'px';
-            t.style.top = (y - padY) + 'px';
-            t.style.width = (w + (padX * 2)) + 'px';
-            t.style.height = (h + (padY * 2)) + 'px';
+            t.className = `tarja ${type}`;
+            t.style.left = (x - padX) + 'px'; t.style.top = (y - padY) + 'px';
+            t.style.width = (w + (padX * 2)) + 'px'; t.style.height = (h + (padY * 2)) + 'px';
 
             const del = document.createElement('div');
-            del.className = 'tarja-remove';
-            del.textContent = '×';
+            del.className = 'tarja-remove'; del.textContent = '×';
             del.onmousedown = e => e.stopPropagation();
             del.onclick = e => { e.stopPropagation(); t.remove(); };
-            
-            t.appendChild(del);
-            layer.appendChild(t);
+            t.appendChild(del); layer.appendChild(t);
         }
 
-        // --- DESENHO MANUAL (Lógica Padrão) ---
         function setupManualDrawing(layer) {
             layer.onmousedown = (e) => {
                 if (state.mode !== 'draw') return;
                 state.isDrawing = true;
                 const r = layer.getBoundingClientRect();
-                state.startX = e.clientX - r.left;
-                state.startY = e.clientY - r.top;
+                state.startX = e.clientX - r.left; state.startY = e.clientY - r.top;
                 state.currentTarja = document.createElement('div');
                 state.currentTarja.className = 'tarja drawing';
-                state.currentTarja.style.left = state.startX + 'px';
-                state.currentTarja.style.top = state.startY + 'px';
+                state.currentTarja.style.left = state.startX + 'px'; state.currentTarja.style.top = state.startY + 'px';
                 layer.appendChild(state.currentTarja);
             };
             layer.onmousemove = (e) => {
                 if (!state.isDrawing) return;
                 const r = layer.getBoundingClientRect();
-                const x = e.clientX - r.left;
-                const y = e.clientY - r.top;
+                const x = e.clientX - r.left; const y = e.clientY - r.top;
                 state.currentTarja.style.width = Math.abs(x - state.startX) + 'px';
                 state.currentTarja.style.height = Math.abs(y - state.startY) + 'px';
                 state.currentTarja.style.left = Math.min(x, state.startX) + 'px';
@@ -469,7 +416,6 @@
             };
         }
 
-        // --- SISTEMA DE ZOOM ---
         UI.btnZoomIn.onclick = () => changeZoom(0.2);
         UI.btnZoomOut.onclick = () => changeZoom(-0.2);
 
@@ -477,7 +423,7 @@
             const newScale = state.scale + delta;
             if (newScale < 0.8 || newScale > 3.0) return;
             state.scale = newScale;
-            UI.sysStatusText.textContent = \`Ajustando zoom...\`;
+            UI.sysStatusText.textContent = `Ajustando zoom...`;
             
             for (let i = 0; i < state.pagesData.length; i++) {
                 const p = state.pagesData[i];
@@ -486,20 +432,13 @@
                 p.container.style.width = p.viewport.width + 'px';
                 p.container.style.height = p.viewport.height + 'px';
                 
-                // Redesenha o Canvas de fundo
-                p.canvas.width = p.viewport.width;
-                p.canvas.height = p.viewport.height;
+                p.canvas.width = p.viewport.width; p.canvas.height = p.viewport.height;
                 await page.render({ canvasContext: p.ctx, viewport: p.viewport }).promise;
-                
-                // Recalcula a posição das tarjas
                 p.layer.innerHTML = '';
-                applyHybridResults(i, []); // Repassa vazio se não tivermos os nomes salvos, ideal seria salvar os aiNames no state
-                // NOTA: Para zoom perfeito em produção com IA, teríamos que salvar as coordenadas X,Y relativas e multiplicá-las pelo scale.
             }
-            UI.sysStatusText.textContent = \`Zoom ajustado para \${state.scale.toFixed(1)}x\`;
+            UI.sysStatusText.textContent = `Zoom ajustado para ${state.scale.toFixed(1)}x. As tarjas automáticas foram ocultadas pelo redimensionamento.`;
         }
 
-        // --- EXPORTAÇÃO SEGURA ---
         UI.btnExport.onclick = async () => {
             setUIState(false);
             UI.progContainer.style.display = 'block';
@@ -509,10 +448,10 @@
 
             for (let i = 0; i < total; i++) {
                 const p = state.pagesData[i];
-                UI.sysStatusText.textContent = \`Rasterizando página \${i + 1} de \${total}...\`;
-                UI.progBar.style.width = \`\${((i + 1) / total) * 100}%\`;
+                UI.sysStatusText.textContent = `Rasterizando página ${i + 1} de ${total}...`;
+                UI.progBar.style.width = `${((i + 1) / total) * 100}%`;
                 
-                await new Promise(r => setTimeout(r, 15)); // Respira a UI
+                await new Promise(r => setTimeout(r, 15)); 
 
                 const tarjas = p.layer.querySelectorAll('.tarja');
                 p.ctx.fillStyle = 'black'; 
