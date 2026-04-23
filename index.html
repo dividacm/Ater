@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ater V10 - Raio-X Edition</title>
+    <title>Ater - Anonimizador de documentos</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1e1e1e; margin: 0; display: flex; flex-direction: column; height: 100vh; color: #f0f0f0; overflow: hidden; }
@@ -25,7 +25,7 @@
         .file-label { background: #222; color: #ccc; border: 1px solid #444; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 12px; }
         .file-label:hover { background: #333; }
 
-        #viewer-container { flex-grow: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; gap: 40px; background: #2d2d2d; }
+        #viewer-container { flex-grow: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; gap: 40px; background: #2d2d2d; position: relative; }
         
         .page-container { position: relative; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.8); transition: transform 0.2s; }
         .interaction-layer { position: absolute; inset: 0; z-index: 10; cursor: default; }
@@ -38,7 +38,6 @@
 
         .tarja { position: absolute; z-index: 20; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; border-radius: 2px; }
         .tarja.regex { background: rgba(0, 123, 255, 0.45); border-color: #007bff; } 
-        .tarja.ai { background: rgba(153, 50, 204, 0.45); border-color: #9932cc; } 
         .tarja.manual { background: rgba(0, 0, 0, 0.75); border-color: #000; }
         .tarja.drawing { background: rgba(255, 193, 7, 0.3); border: 2px dashed #ffc107; }
         
@@ -49,29 +48,55 @@
         #footer { background: #111; border-top: 1px solid #333; display: flex; flex-direction: column; z-index: 100; }
         #progress-container { width: 100%; height: 4px; background: #222; display: none; }
         #progress-bar { width: 0%; height: 100%; background: #007bff; transition: width 0.2s; }
-        
         .status-panel { padding: 8px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #aaa; }
-        .status-left { display: flex; align-items: center; gap: 10px; }
+
+        /* Drag & Drop Overlay */
+        #drag-overlay { position: fixed; inset: 0; background: rgba(0, 123, 255, 0.15); z-index: 9999; display: none; align-items: center; justify-content: center; flex-direction: column; backdrop-filter: blur(3px); pointer-events: none; }
+        #drag-overlay .box { border: 4px dashed #007bff; border-radius: 20px; padding: 50px 100px; text-align: center; background: rgba(30, 30, 30, 0.9); box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        #drag-overlay h2 { color: #007bff; margin: 0 0 10px 0; font-size: 2rem; }
+
+        /* Modal Exceções */
+        #modal-excecoes { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 10000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
+        .modal-content { background: #1e1e1e; border: 1px solid #333; border-radius: 8px; width: 500px; max-width: 90%; padding: 25px; box-shadow: 0 15px 40px rgba(0,0,0,0.7); display: flex; flex-direction: column; gap: 15px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .modal-header h2 { margin: 0; font-size: 1.2rem; color: #007bff; }
+        .btn-close { background: none; border: none; color: #aaa; font-size: 1.5rem; cursor: pointer; }
+        .btn-close:hover { color: white; }
         
-        .indicator { width: 10px; height: 10px; border-radius: 50%; background: #444; }
-        .indicator.loading { background: #ffc107; box-shadow: 0 0 8px #ffc107; animation: pulse 1.5s infinite; }
-        .indicator.ready { background: #28a745; box-shadow: 0 0 8px #28a745; }
-        .indicator.error { background: #dc3545; box-shadow: 0 0 8px #dc3545; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        .input-group { display: flex; gap: 10px; }
+        .input-group input { flex-grow: 1; background: #2a2a2a; border: 1px solid #444; color: white; padding: 8px 12px; border-radius: 4px; outline: none; font-size: 14px; }
+        .input-group input:focus { border-color: #007bff; }
+        
+        .chip-container { display: flex; flex-wrap: wrap; gap: 8px; max-height: 250px; overflow-y: auto; padding: 10px 0; align-content: flex-start; }
+        .chip { background: #333; border: 1px solid #444; padding: 4px 10px; border-radius: 15px; font-size: 11px; display: flex; align-items: center; gap: 8px; color: #ddd; }
+        .chip-remove { cursor: pointer; color: #dc3545; font-weight: bold; }
+        .chip-remove:hover { color: #ff6b6b; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
+    <div id="drag-overlay"><div class="box"><h2>Solte o PDF Aqui</h2></div></div>
+
+    <div id="modal-excecoes">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚙️ Dicionário de Exceções</h2>
+                <button class="btn-close" id="btn-close-modal">×</button>
+            </div>
+            <p style="font-size: 12px; color: #888; margin: 0;">Palavras nesta lista serão ignoradas pelas tarjas automáticas para evitar marcações erradas.</p>
+            <div class="input-group">
+                <input type="text" id="input-termo" placeholder="Digite uma palavra (ex: SECRETARIA)" autocomplete="off">
+                <button class="btn btn-success" id="btn-add-termo">Adicionar</button>
+            </div>
+            <div class="chip-container" id="chip-container"></div>
+        </div>
+    </div>
+
     <div class="toolbar">
-        <h1>ATER V10</h1>
-        
-        <label class="file-label" id="lbl-file">
-            📂 Abrir PDF
-            <input type="file" id="file-input" accept="application/pdf" disabled />
-        </label>
-        
+        <h1>ATER V13</h1>
+        <label class="file-label" id="lbl-file">📂 Abrir PDF <input type="file" id="file-input" accept="application/pdf" /></label>
         <button id="btn-clear" class="btn" title="Limpar área de trabalho" disabled>🗑️ Limpar</button>
         <div class="divider"></div>
         <button id="btn-mode-view" class="btn active" disabled>🖱️ Navegar</button>
@@ -80,29 +105,25 @@
         <button id="btn-zoom-out" class="btn" disabled>Zoom -</button>
         <button id="btn-zoom-in" class="btn" disabled>Zoom +</button>
         <div class="divider"></div>
-        <button id="btn-cancel" class="btn btn-danger" style="display: none;">🛑 Cancelar IA</button>
+        <button id="btn-excecoes" class="btn">⚙️ Exceções</button>
+        <div class="divider"></div>
+        <button id="btn-cancel" class="btn btn-danger" style="display: none;">🛑 Cancelar</button>
         <button id="btn-export" class="btn btn-success" style="margin-left: auto;" disabled>💾 Exportar Seguro</button>
     </div>
 
     <div id="viewer-container">
         <div id="welcome-msg" style="text-align: center; margin-top: 100px; color: #666; max-width: 500px;">
             <h2>Ambiente de Anonimização Pronto</h2>
-            <p>Aguardando a inicialização do motor de Inteligência Artificial Local.</p>
+            <p><strong>Arraste um PDF</strong> para esta janela. Processamento 100% offline via regex.</p>
         </div>
     </div>
     
     <div id="footer">
         <div id="progress-container"><div id="progress-bar"></div></div>
-        <div class="status-panel">
-            <div class="status-left">
-                <div id="ai-indicator" class="indicator loading"></div>
-                <span id="ai-status-text">Inicializando Web Worker (IA)...</span>
-            </div>
-            <div id="sys-status-text">Sistema Ocioso</div>
-        </div>
+        <div class="status-panel"><div id="sys-status-text">Sistema Ocioso.</div></div>
     </div>
 
-    <script type="module">
+    <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
         const PATTERNS = {
@@ -110,9 +131,70 @@
             RG: /\b\d{1,2}\.\d{3}\.\d{3}-[\dX]\b/gi,
             CEP: /\b\d{2}\.\d{3}-\d{3}\b|\b\d{5}-\d{3}\b/g,
             Telefone: /\(?\d{2}\)?\s?\d{4,5}-?\d{4}/g,
-            Endereco: /\b(Rua|Avenida|Av\.|Travessa|Bairro|Alameda|Rodovia|Rod\.)\b\s+[^,\.\n\r]+/gi
+            Endereco: /\b(Rua|Avenida|Av\.|Travessa|Bairro|Alameda|Rodovia|Rod\.)\b\s+[^,\.\n\r]+/gi,
+            NomesCompostos: /\b[A-ZÁÉÍÓÚÀÂÊÔÃÕÇ][a-záéíóúàâêôãõç]+\s+(?:(?:da|de|do|das|dos)\s+)?[A-ZÁÉÍÓÚÀÂÊÔÃÕÇ][a-záéíóúàâêôãõç]+(?:\s+(?:(?:da|de|do|das|dos)\s+)?[A-ZÁÉÍÓÚÀÂÊÔÃÕÇ][a-záéíóúàâêôãõç]+)*\b/g,
+            NomesMaiusculos: /\b[A-ZÁÉÍÓÚÀÂÊÔÃÕÇ]{3,}\s+(?:(?:DA|DE|DO|DAS|DOS)\s+)?[A-ZÁÉÍÓÚÀÂÊÔÃÕÇ]{3,}(?:\s+(?:(?:DA|DE|DO|DAS|DOS)\s+)?[A-ZÁÉÍÓÚÀÂÊÔÃÕÇ]{3,})*\b/g
         };
 
+        // --- SISTEMA DE EXCEÇÕES (LocalStorage) ---
+        const TERMOS_PADRAO = ['LEI', 'DECRETO', 'PORTARIA', 'DATA', 'VENCIMENTO', 'PREFEITURA', 'SECRETARIA', 'MUNICIPAL', 'ESTADUAL', 'FEDERAL', 'COMPLEMENTAR', 'ARTIGO', 'INCISO', 'PARÁGRAFO', 'ESTADO', 'DISTRITO', 'CONCURSO', 'PÚBLICO', 'EDITAL', 'PROCESSO', 'GABINETE', 'DIÁRIO', 'OFICIAL', 'RESOLUÇÃO', 'PAÇO', 'MUNICÍPIO', 'PODER', 'EXECUTIVO', 'LEGISLATIVO', 'CARGO', 'LOTADA', 'MATRÍCULA', 'SÍMBOLO', 'NÍVEL', 'FUNÇÃO'];
+        
+        let TERMOS_IGNORADOS = new Set();
+
+        function carregarExcecoes() {
+            const salvas = localStorage.getItem('ater_excecoes');
+            if (salvas) {
+                TERMOS_IGNORADOS = new Set(JSON.parse(salvas));
+            } else {
+                TERMOS_IGNORADOS = new Set(TERMOS_PADRAO);
+                salvarExcecoes();
+            }
+            renderizarChips();
+        }
+
+        function salvarExcecoes() {
+            localStorage.setItem('ater_excecoes', JSON.stringify([...TERMOS_IGNORADOS]));
+            renderizarChips();
+        }
+
+        function adicionarTermo(texto) {
+            const formatado = texto.trim().toUpperCase().replace(/[.,]/g, '');
+            if (formatado && !TERMOS_IGNORADOS.has(formatado)) {
+                TERMOS_IGNORADOS.add(formatado);
+                salvarExcecoes();
+            }
+            document.getElementById('input-termo').value = '';
+        }
+
+        function removerTermo(texto) {
+            TERMOS_IGNORADOS.delete(texto);
+            salvarExcecoes();
+        }
+
+        function renderizarChips() {
+            const container = document.getElementById('chip-container');
+            container.innerHTML = '';
+            // Ordena alfabeticamente para visualização
+            [...TERMOS_IGNORADOS].sort().forEach(termo => {
+                const chip = document.createElement('div');
+                chip.className = 'chip';
+                chip.innerHTML = `<span>${termo}</span> <span class="chip-remove" onclick="removerTermo('${termo}')">×</span>`;
+                container.appendChild(chip);
+            });
+        }
+
+        // Lógica da UI do Modal
+        document.getElementById('btn-excecoes').onclick = () => document.getElementById('modal-excecoes').style.display = 'flex';
+        document.getElementById('btn-close-modal').onclick = () => document.getElementById('modal-excecoes').style.display = 'none';
+        document.getElementById('btn-add-termo').onclick = () => adicionarTermo(document.getElementById('input-termo').value);
+        document.getElementById('input-termo').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') adicionarTermo(e.target.value);
+        });
+
+        // Inicializa as exceções
+        carregarExcecoes();
+
+        // --- CORE SYSTEM (Ater V12 adaptado) ---
         const state = {
             pdfDoc: null, pagesData: [], mode: 'view', scale: 1.5,
             isDrawing: false, startX: 0, startY: 0, currentTarja: null,
@@ -120,112 +202,40 @@
         };
 
         const UI = {
-            fileInput: document.getElementById('file-input'), lblFile: document.getElementById('lbl-file'),
-            btnClear: document.getElementById('btn-clear'), btnView: document.getElementById('btn-mode-view'),
-            btnDraw: document.getElementById('btn-mode-draw'), btnZoomIn: document.getElementById('btn-zoom-in'),
-            btnZoomOut: document.getElementById('btn-zoom-out'), btnCancel: document.getElementById('btn-cancel'),
-            btnExport: document.getElementById('btn-export'), viewer: document.getElementById('viewer-container'),
-            welcomeMsg: document.getElementById('welcome-msg'), aiIndicator: document.getElementById('ai-indicator'),
-            aiStatusText: document.getElementById('ai-status-text'), sysStatusText: document.getElementById('sys-status-text'),
-            progContainer: document.getElementById('progress-container'), progBar: document.getElementById('progress-bar')
+            fileInput: document.getElementById('file-input'), btnClear: document.getElementById('btn-clear'),
+            btnView: document.getElementById('btn-mode-view'), btnDraw: document.getElementById('btn-mode-draw'),
+            btnZoomIn: document.getElementById('btn-zoom-in'), btnZoomOut: document.getElementById('btn-zoom-out'),
+            btnCancel: document.getElementById('btn-cancel'), btnExport: document.getElementById('btn-export'),
+            viewer: document.getElementById('viewer-container'), welcomeMsg: document.getElementById('welcome-msg'),
+            sysStatusText: document.getElementById('sys-status-text'), dragOverlay: document.getElementById('drag-overlay')
         };
 
-        let aiWorker = null;
+        // Drag & Drop
+        let dragCounter = 0;
+        window.addEventListener('dragover', e => e.preventDefault());
+        window.addEventListener('dragenter', e => { e.preventDefault(); dragCounter++; UI.dragOverlay.style.display = 'flex'; });
+        window.addEventListener('dragleave', e => { e.preventDefault(); dragCounter--; if (dragCounter === 0) UI.dragOverlay.style.display = 'none'; });
+        window.addEventListener('drop', e => {
+            e.preventDefault(); dragCounter = 0; UI.dragOverlay.style.display = 'none';
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) iniciarProcessamento(e.dataTransfer.files[0]);
+        });
 
-        const workerCode = `
-            import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.1';
-            env.allowLocalModels = false;
-            let nerPipeline;
+        UI.fileInput.onchange = e => { if (e.target.files[0]) iniciarProcessamento(e.target.files[0]); };
 
-            self.onmessage = async (e) => {
-                const { type, text, pageIndex } = e.data;
-                if (type === 'init') {
-                    try {
-                        nerPipeline = await pipeline('token-classification', 'Xenova/bert-base-multilingual-cased-ner-hrl', {
-                            quantized: true, progress_callback: (p) => self.postMessage({ type: 'progress', progress: p })
-                        });
-                        self.postMessage({ type: 'ready' });
-                    } catch (err) {
-                        self.postMessage({ type: 'error', msg: err.message });
-                    }
-                }
-                if (type === 'analyze') {
-                    if (!nerPipeline) return;
-                    const entities = await nerPipeline(text);
-                    const names = entities
-                        .filter(ent => (ent.entity_group === 'PER' || ent.entity_group === 'ORG') && ent.score > 0.6)
-                        .map(ent => ent.word.replace(/#/g, '').trim())
-                        .filter(w => w.length > 2);
-                    self.postMessage({ type: 'result', names, pageIndex });
-                }
-            };
-        `;
-
-        function fallbackBasico(motivo) {
-            UI.aiIndicator.className = 'indicator error';
-            UI.aiStatusText.textContent = "Modo Básico Ativo (Sem IA)";
-            UI.progContainer.style.display = 'none';
-            UI.fileInput.disabled = false; 
-            console.warn(motivo);
+        async function iniciarProcessamento(file) {
+            if (file.type !== 'application/pdf') return;
+            UI.btnClear.click(); UI.viewer.innerHTML = '';
+            UI.sysStatusText.textContent = "Lendo estrutura do PDF...";
             
-            if(state.pdfDoc === null) {
-                UI.welcomeMsg.innerHTML = `
-                    <h2 style="color: #dc3545;">Modo Básico Ativado</h2>
-                    <p>A Inteligência Artificial falhou ao iniciar.</p>
-                    <p style="font-size: 12px; color: #888;">Motivo: ${motivo}</p>
-                    <p>O sistema operará apenas com a detecção estrutural (CPF, CEP) e tarjas manuais. <b>Selecione um PDF para continuar.</b></p>
-                `;
-            }
+            const buffer = await file.arrayBuffer();
+            state.pdfDoc = await pdfjsLib.getDocument({ data: buffer }).promise;
+            
+            for (let i = 1; i <= state.pdfDoc.numPages; i++) await buildPageContainer(i);
+            
+            state.cancelRequested = false; state.isProcessing = true;
+            UI.btnCancel.style.display = 'flex'; setUIState(false); 
+            processNextPage(0); 
         }
-
-        function spawnWorker() {
-            if (aiWorker) aiWorker.terminate(); 
-            const blob = new Blob([workerCode], { type: 'application/javascript' });
-            
-            try {
-                aiWorker = new Worker(URL.createObjectURL(blob), { type: 'module' });
-            } catch(e) {
-                fallbackBasico("O navegador não suporta módulos em background.");
-                return;
-            }
-            
-            aiWorker.postMessage({ type: 'init' });
-
-            aiWorker.onmessage = (e) => {
-                const { type, progress, names, pageIndex, msg } = e.data;
-
-                if (type === 'progress') {
-                    UI.progContainer.style.display = 'block';
-                    if (progress.status === 'progress') UI.progBar.style.width = `${progress.progress}%`;
-                }
-                
-                if (type === 'ready') {
-                    UI.aiIndicator.className = 'indicator ready';
-                    UI.aiStatusText.textContent = "IA Pronta (Offline)";
-                    UI.progContainer.style.display = 'none';
-                    UI.fileInput.disabled = false;
-                    if(state.pdfDoc === null) {
-                        UI.welcomeMsg.innerHTML = "<h2>IA Carregada</h2><p>Selecione um PDF para iniciar a anonimização.</p>";
-                    }
-                }
-
-                if (type === 'result') {
-                    if (state.cancelRequested) return; 
-                    applyHybridResults(pageIndex, names);
-                    processNextPage(pageIndex + 1); 
-                }
-
-                if (type === 'error') {
-                    fallbackBasico("Erro de conexão na IA: " + msg);
-                }
-            };
-
-            aiWorker.onerror = (err) => {
-                fallbackBasico("Acesso bloqueado. Verifique se está usando Localhost ou se o Firewall bloqueou o script.");
-            };
-        }
-        
-        spawnWorker();
 
         function setUIState(enabled) {
             UI.btnView.disabled = !enabled; UI.btnDraw.disabled = !enabled;
@@ -240,48 +250,23 @@
             state.mode = m;
             UI.btnView.classList.toggle('active', m === 'view');
             UI.btnDraw.classList.toggle('active', m === 'draw');
-            state.pagesData.forEach(p => {
-                if(p.layer) p.layer.classList.toggle('draw-mode', m === 'draw');
-            });
+            state.pagesData.forEach(p => { if(p.layer) p.layer.classList.toggle('draw-mode', m === 'draw'); });
         }
 
         UI.btnClear.onclick = () => {
             state.pdfDoc = null; state.pagesData = []; state.cancelRequested = false;
             UI.viewer.innerHTML = ''; UI.fileInput.value = ''; 
-            UI.viewer.appendChild(UI.welcomeMsg);
-            UI.welcomeMsg.innerHTML = "<h2>Área Limpa</h2><p>Memória liberada. Selecione um novo PDF.</p>";
-            UI.sysStatusText.textContent = "Sistema Ocioso";
+            UI.viewer.appendChild(UI.welcomeMsg); UI.sysStatusText.textContent = "Sistema Ocioso.";
             setUIState(false);
         };
 
         UI.btnCancel.onclick = () => {
             if (state.isProcessing) {
                 state.cancelRequested = true; state.isProcessing = false;
-                aiWorker.terminate(); spawnWorker(); 
                 state.pagesData.forEach(p => p.container.classList.remove('processing'));
-                UI.btnCancel.style.display = 'none';
-                UI.sysStatusText.textContent = "Processamento Cancelado.";
+                UI.btnCancel.style.display = 'none'; UI.sysStatusText.textContent = "Busca Cancelada.";
                 setUIState(true); 
             }
-        };
-
-        UI.fileInput.onchange = async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            UI.btnClear.click(); 
-            UI.viewer.innerHTML = '';
-            UI.sysStatusText.textContent = "Lendo estrutura do PDF...";
-            
-            const buffer = await file.arrayBuffer();
-            state.pdfDoc = await pdfjsLib.getDocument({ data: buffer }).promise;
-            
-            for (let i = 1; i <= state.pdfDoc.numPages; i++) await buildPageContainer(i);
-            
-            state.cancelRequested = false; state.isProcessing = true;
-            UI.btnCancel.style.display = 'flex';
-            setUIState(false); 
-            processNextPage(0); 
         };
 
         async function buildPageContainer(num) {
@@ -289,61 +274,29 @@
             const viewport = page.getViewport({ scale: state.scale });
             const container = document.createElement('div');
             container.className = 'page-container processing'; 
-            container.style.width = viewport.width + 'px';
-            container.style.height = viewport.height + 'px';
-            container.innerHTML = `
-                <canvas width="${viewport.width}" height="${viewport.height}"></canvas>
-                <div class="interaction-layer"></div>
-                <div class="page-loader"><div class="spinner"></div><div style="margin-top:15px; color:white; font-weight:bold;">Aguardando IA...</div></div>
-            `;
+            container.style.width = viewport.width + 'px'; container.style.height = viewport.height + 'px';
+            container.innerHTML = `<canvas width="${viewport.width}" height="${viewport.height}"></canvas><div class="interaction-layer"></div><div class="page-loader"><div class="spinner"></div><div style="margin-top:15px; color:white;">Analisando Padrões...</div></div>`;
             UI.viewer.appendChild(container);
-
-            const canvas = container.querySelector('canvas');
-            const ctx = canvas.getContext('2d');
-            const layer = container.querySelector('.interaction-layer');
-
+            const canvas = container.querySelector('canvas'), ctx = canvas.getContext('2d'), layer = container.querySelector('.interaction-layer');
             state.pagesData.push({ num, viewport, container, canvas, ctx, layer, textItems: null });
             await page.render({ canvasContext: ctx, viewport }).promise;
-            
-            const textContent = await page.getTextContent();
-            state.pagesData[num-1].textItems = textContent.items;
+            state.pagesData[num-1].textItems = (await page.getTextContent()).items;
             setupManualDrawing(layer);
         }
 
-        // --- MODO RAIO-X INSERIDO AQUI ---
         function processNextPage(index) {
             if (state.cancelRequested) return;
             if (index >= state.pagesData.length) {
                 state.isProcessing = false; UI.btnCancel.style.display = 'none';
-                UI.sysStatusText.textContent = `Análise Concluída (${state.pagesData.length} páginas).`;
+                UI.sysStatusText.textContent = `Detecção Concluída (${state.pagesData.length} páginas analisadas).`;
                 setUIState(true); return;
             }
-            const pageData = state.pagesData[index];
-            UI.sysStatusText.textContent = `IA Analisando página ${index + 1} de ${state.pagesData.length}...`;
-            
-            const fullText = pageData.textItems.map(i => i.str).join(' ').trim();
-            
-            // LOGS DO RAIO-X
-            console.warn(`--- RAIO-X: PÁGINA ${index + 1} ---`);
-            console.log("1. Total de caracteres extraídos do PDF:", fullText.length);
-            if(fullText.length < 10) {
-                console.error("ALERTA: Documento sem texto! Provavelmente é um PDF escaneado (imagem). A IA não tem o que ler.");
-            } else {
-                console.log("2. Texto enviado para a IA:", fullText.substring(0, 100) + "... (resumido)");
-            }
-
-            aiWorker.postMessage({ type: 'analyze', text: fullText, pageIndex: index });
+            applyRegexResults(index);
+            setTimeout(() => processNextPage(index + 1), 10);
         }
 
-        function applyHybridResults(pageIndex, aiNames) {
+        function applyRegexResults(pageIndex) {
             const pageData = state.pagesData[pageIndex];
-            
-            // LOGS DO RAIO-X
-            console.log("3. Nomes identificados pela IA:", aiNames);
-            if(aiNames.length === 0) {
-                console.warn("Aviso: A IA leu o texto, mas não encontrou nenhum nome próprio com confiança suficiente nesta página.");
-            }
-
             pageData.textItems.forEach(item => {
                 const text = item.str;
                 if (!text.trim()) return;
@@ -356,132 +309,94 @@
                 for (const key in PATTERNS) {
                     const matches = [...text.matchAll(PATTERNS[key])];
                     for (const match of matches) {
+                        const matchText = match[0];
+
+                        // FILTRO COM O SET DINÂMICO
+                        if (key === 'NomesCompostos' || key === 'NomesMaiusculos') {
+                            const palavras = matchText.toUpperCase().replace(/[.,]/g, '').split(/\s+/);
+                            if (palavras.some(p => TERMOS_IGNORADOS.has(p))) continue; 
+                        }
+
                         const startX = tx[4] + (totalWidth * (match.index / text.length));
-                        const tarjaWidth = totalWidth * (match[0].length / text.length);
+                        const tarjaWidth = totalWidth * (matchText.length / text.length);
                         addTarja(pageData.layer, startX, tx[5] - offsetY, tarjaWidth, height, 'regex');
                     }
                 }
-
-                aiNames.forEach(name => {
-                    const startIndex = text.indexOf(name);
-                    if (startIndex !== -1) {
-                        const startX = tx[4] + (totalWidth * (startIndex / text.length));
-                        const tarjaWidth = totalWidth * (name.length / text.length);
-                        addTarja(pageData.layer, startX, tx[5] - offsetY, tarjaWidth, height, 'ai');
-                    } else if (name.includes(text.trim()) && text.trim().length > 3) {
-                        addTarja(pageData.layer, tx[4], tx[5] - offsetY, totalWidth, height, 'ai');
-                    }
-                });
             });
             pageData.container.classList.remove('processing');
         }
 
         function addTarja(layer, x, y, w, h, type) {
-            const padX = 4, padY = 2;
-            const t = document.createElement('div');
-            t.className = `tarja ${type}`;
-            t.style.left = (x - padX) + 'px'; t.style.top = (y - padY) + 'px';
+            const padX = 4, padY = 2, t = document.createElement('div');
+            t.className = `tarja ${type}`; t.style.left = (x - padX) + 'px'; t.style.top = (y - padY) + 'px';
             t.style.width = (w + (padX * 2)) + 'px'; t.style.height = (h + (padY * 2)) + 'px';
-
             const del = document.createElement('div');
             del.className = 'tarja-remove'; del.textContent = '×';
-            del.onmousedown = e => e.stopPropagation();
-            del.onclick = e => { e.stopPropagation(); t.remove(); };
+            del.onmousedown = e => e.stopPropagation(); del.onclick = e => { e.stopPropagation(); t.remove(); };
             t.appendChild(del); layer.appendChild(t);
         }
 
         function setupManualDrawing(layer) {
             layer.onmousedown = (e) => {
-                if (state.mode !== 'draw') return;
-                state.isDrawing = true;
-                const r = layer.getBoundingClientRect();
-                state.startX = e.clientX - r.left; state.startY = e.clientY - r.top;
-                state.currentTarja = document.createElement('div');
-                state.currentTarja.className = 'tarja drawing';
+                if (state.mode !== 'draw') return; state.isDrawing = true;
+                const r = layer.getBoundingClientRect(); state.startX = e.clientX - r.left; state.startY = e.clientY - r.top;
+                state.currentTarja = document.createElement('div'); state.currentTarja.className = 'tarja drawing';
                 state.currentTarja.style.left = state.startX + 'px'; state.currentTarja.style.top = state.startY + 'px';
                 layer.appendChild(state.currentTarja);
             };
             layer.onmousemove = (e) => {
                 if (!state.isDrawing) return;
-                const r = layer.getBoundingClientRect();
-                const x = e.clientX - r.left; const y = e.clientY - r.top;
-                state.currentTarja.style.width = Math.abs(x - state.startX) + 'px';
-                state.currentTarja.style.height = Math.abs(y - state.startY) + 'px';
-                state.currentTarja.style.left = Math.min(x, state.startX) + 'px';
-                state.currentTarja.style.top = Math.min(y, state.startY) + 'px';
+                const r = layer.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+                state.currentTarja.style.width = Math.abs(x - state.startX) + 'px'; state.currentTarja.style.height = Math.abs(y - state.startY) + 'px';
+                state.currentTarja.style.left = Math.min(x, state.startX) + 'px'; state.currentTarja.style.top = Math.min(y, state.startY) + 'px';
             };
             layer.onmouseup = () => {
-                if (!state.isDrawing) return;
-                state.isDrawing = false;
+                if (!state.isDrawing) return; state.isDrawing = false;
                 if (parseFloat(state.currentTarja.style.width || 0) > 5) {
                     state.currentTarja.className = 'tarja manual';
-                    const del = document.createElement('div');
-                    del.className = 'tarja-remove'; del.textContent = '×';
-                    del.onmousedown = e => e.stopPropagation();
-                    del.onclick = e => { e.stopPropagation(); state.currentTarja.remove(); };
+                    const del = document.createElement('div'); del.className = 'tarja-remove'; del.textContent = '×';
+                    del.onmousedown = e => e.stopPropagation(); del.onclick = e => { e.stopPropagation(); state.currentTarja.remove(); };
                     state.currentTarja.appendChild(del);
-                } else {
-                    state.currentTarja.remove();
-                }
+                } else state.currentTarja.remove();
                 state.currentTarja = null;
             };
         }
 
         UI.btnZoomIn.onclick = () => changeZoom(0.2);
         UI.btnZoomOut.onclick = () => changeZoom(-0.2);
-
         async function changeZoom(delta) {
-            const newScale = state.scale + delta;
-            if (newScale < 0.8 || newScale > 3.0) return;
-            state.scale = newScale;
-            UI.sysStatusText.textContent = `Ajustando zoom...`;
-            
+            const newScale = state.scale + delta; if (newScale < 0.8 || newScale > 3.0) return;
+            state.scale = newScale; document.getElementById('sys-status-text').textContent = `Ajustando zoom...`;
             for (let i = 0; i < state.pagesData.length; i++) {
-                const p = state.pagesData[i];
-                const page = await state.pdfDoc.getPage(p.num);
+                const p = state.pagesData[i], page = await state.pdfDoc.getPage(p.num);
                 p.viewport = page.getViewport({ scale: state.scale });
-                p.container.style.width = p.viewport.width + 'px';
-                p.container.style.height = p.viewport.height + 'px';
-                
+                p.container.style.width = p.viewport.width + 'px'; p.container.style.height = p.viewport.height + 'px';
                 p.canvas.width = p.viewport.width; p.canvas.height = p.viewport.height;
                 await page.render({ canvasContext: p.ctx, viewport: p.viewport }).promise;
-                p.layer.innerHTML = '';
+                p.layer.innerHTML = ''; applyRegexResults(i); 
             }
-            UI.sysStatusText.textContent = `Zoom ajustado para ${state.scale.toFixed(1)}x. As tarjas automáticas foram ocultadas pelo redimensionamento.`;
+            document.getElementById('sys-status-text').textContent = `Zoom ajustado para ${state.scale.toFixed(1)}x.`;
         }
 
         UI.btnExport.onclick = async () => {
-            setUIState(false);
-            UI.progContainer.style.display = 'block';
-            
-            const doc = new window.jspdf.jsPDF('p', 'pt', 'a4');
-            const total = state.pagesData.length;
-
+            setUIState(false); document.getElementById('progress-container').style.display = 'block';
+            const doc = new window.jspdf.jsPDF('p', 'pt', 'a4'), total = state.pagesData.length;
             for (let i = 0; i < total; i++) {
                 const p = state.pagesData[i];
-                UI.sysStatusText.textContent = `Rasterizando página ${i + 1} de ${total}...`;
-                UI.progBar.style.width = `${((i + 1) / total) * 100}%`;
-                
+                document.getElementById('sys-status-text').textContent = `Rasterizando página ${i + 1} de ${total}...`;
+                document.getElementById('progress-bar').style.width = `${((i + 1) / total) * 100}%`;
                 await new Promise(r => setTimeout(r, 15)); 
-
-                const tarjas = p.layer.querySelectorAll('.tarja');
-                p.ctx.fillStyle = 'black'; 
-                tarjas.forEach(t => {
+                p.layer.querySelectorAll('.tarja').forEach(t => {
+                    p.ctx.fillStyle = 'black'; 
                     p.ctx.fillRect(parseFloat(t.style.left), parseFloat(t.style.top), parseFloat(t.style.width), parseFloat(t.style.height));
                 });
-
-                const img = p.canvas.toDataURL('image/jpeg', 0.85);
-                const pageWidth = doc.internal.pageSize.getWidth();
-                const pageHeight = (p.canvas.height * pageWidth) / p.canvas.width;
-
+                const img = p.canvas.toDataURL('image/jpeg', 0.85), pw = doc.internal.pageSize.getWidth(), ph = (p.canvas.height * pw) / p.canvas.width;
                 if (i > 0) doc.addPage();
-                doc.addImage(img, 'JPEG', 0, 0, pageWidth, pageHeight);
+                doc.addImage(img, 'JPEG', 0, 0, pw, ph);
             }
-
-            doc.save('ater_v10_anonimizado.pdf');
-            
-            UI.sysStatusText.textContent = "Download concluído com sucesso.";
-            setTimeout(() => { UI.progContainer.style.display = 'none'; UI.progBar.style.width = '0%'; }, 2000);
+            doc.save('ater_v13_anonimizado.pdf');
+            document.getElementById('sys-status-text').textContent = "Download concluído com sucesso.";
+            setTimeout(() => { document.getElementById('progress-container').style.display = 'none'; document.getElementById('progress-bar').style.width = '0%'; }, 2000);
             setUIState(true);
         };
     </script>
