@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ater - Anonimizador de documentos</title>
+    <title>Ater - Anonimizador de Documentos</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1e1e1e; margin: 0; display: flex; flex-direction: column; height: 100vh; color: #f0f0f0; overflow: hidden; }
@@ -18,12 +18,20 @@
         .btn-danger { background: #dc3545; border-color: #c82333; }
         .btn-danger:hover:not(:disabled) { background: #c82333; }
         .btn-success { background: #28a745; border-color: #218838; }
+        .btn-warning { background: #ff9800; border-color: #e68a00; color: #111; font-weight: bold; }
+        .btn-warning:hover:not(:disabled) { background: #e68a00; }
         
         .divider { width: 1px; height: 24px; background: #444; margin: 0 5px; }
         
         #file-input { display: none; }
         .file-label { background: #222; color: #ccc; border: 1px solid #444; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 12px; }
         .file-label:hover { background: #333; }
+
+        /* Campo de Busca Customizada */
+        .search-group { display: flex; gap: 5px; margin-left: 10px; }
+        .search-group input { background: #222; border: 1px solid #444; color: white; padding: 6px 10px; border-radius: 4px; font-size: 12px; outline: none; width: 160px; transition: 0.2s; }
+        .search-group input:focus { border-color: #ff9800; }
+        .search-group input:disabled { opacity: 0.4; cursor: not-allowed; }
 
         #viewer-container { flex-grow: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; gap: 40px; background: #2d2d2d; position: relative; }
         
@@ -36,9 +44,11 @@
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #007bff; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+        /* Estilos de Tarjas */
         .tarja { position: absolute; z-index: 20; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; border-radius: 2px; }
-        .tarja.regex { background: rgba(0, 123, 255, 0.45); border-color: #007bff; } 
-        .tarja.manual { background: rgba(0, 0, 0, 0.75); border-color: #000; }
+        .tarja.regex { background: rgba(0, 123, 255, 0.45); border-color: #007bff; } /* Automáticas: Azul */
+        .tarja.custom { background: rgba(255, 152, 0, 0.45); border-color: #ff9800; } /* Busca Customizada: Laranja */
+        .tarja.manual { background: rgba(0, 0, 0, 0.75); border-color: #000; } /* Desenho: Preto */
         .tarja.drawing { background: rgba(255, 193, 7, 0.3); border: 2px dashed #ffc107; }
         
         .tarja-remove { position: absolute; top: -8px; right: -8px; background: #dc3545; color: white; width: 18px; height: 18px; border-radius: 50%; text-align: center; line-height: 16px; font-size: 14px; font-weight: bold; cursor: pointer; display: none; z-index: 30; box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
@@ -50,23 +60,19 @@
         #progress-bar { width: 0%; height: 100%; background: #007bff; transition: width 0.2s; }
         .status-panel { padding: 8px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #aaa; }
 
-        /* Drag & Drop Overlay */
         #drag-overlay { position: fixed; inset: 0; background: rgba(0, 123, 255, 0.15); z-index: 9999; display: none; align-items: center; justify-content: center; flex-direction: column; backdrop-filter: blur(3px); pointer-events: none; }
         #drag-overlay .box { border: 4px dashed #007bff; border-radius: 20px; padding: 50px 100px; text-align: center; background: rgba(30, 30, 30, 0.9); box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
         #drag-overlay h2 { color: #007bff; margin: 0 0 10px 0; font-size: 2rem; }
 
-        /* Modal Exceções */
         #modal-excecoes { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 10000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
         .modal-content { background: #1e1e1e; border: 1px solid #333; border-radius: 8px; width: 500px; max-width: 90%; padding: 25px; box-shadow: 0 15px 40px rgba(0,0,0,0.7); display: flex; flex-direction: column; gap: 15px; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; }
         .modal-header h2 { margin: 0; font-size: 1.2rem; color: #007bff; }
         .btn-close { background: none; border: none; color: #aaa; font-size: 1.5rem; cursor: pointer; }
         .btn-close:hover { color: white; }
-        
         .input-group { display: flex; gap: 10px; }
         .input-group input { flex-grow: 1; background: #2a2a2a; border: 1px solid #444; color: white; padding: 8px 12px; border-radius: 4px; outline: none; font-size: 14px; }
         .input-group input:focus { border-color: #007bff; }
-        
         .chip-container { display: flex; flex-wrap: wrap; gap: 8px; max-height: 250px; overflow-y: auto; padding: 10px 0; align-content: flex-start; }
         .chip { background: #333; border: 1px solid #444; padding: 4px 10px; border-radius: 15px; font-size: 11px; display: flex; align-items: center; gap: 8px; color: #ddd; }
         .chip-remove { cursor: pointer; color: #dc3545; font-weight: bold; }
@@ -95,20 +101,29 @@
     </div>
 
     <div class="toolbar">
-        <h1>ATER V13</h1>
+        <h1>ATER V14</h1>
         <label class="file-label" id="lbl-file">📂 Abrir PDF <input type="file" id="file-input" accept="application/pdf" /></label>
         <button id="btn-clear" class="btn" title="Limpar área de trabalho" disabled>🗑️ Limpar</button>
+        
         <div class="divider"></div>
         <button id="btn-mode-view" class="btn active" disabled>🖱️ Navegar</button>
         <button id="btn-mode-draw" class="btn" disabled>✏️ Desenhar Tarja</button>
+        
         <div class="divider"></div>
         <button id="btn-zoom-out" class="btn" disabled>Zoom -</button>
         <button id="btn-zoom-in" class="btn" disabled>Zoom +</button>
+        
         <div class="divider"></div>
         <button id="btn-excecoes" class="btn">⚙️ Exceções</button>
-        <div class="divider"></div>
+
+        <div class="search-group">
+            <input type="text" id="input-search" placeholder="Procurar e tarjar..." autocomplete="off" disabled>
+            <button id="btn-search" class="btn btn-warning" title="Encontrar e tarjar termo no documento inteiro" disabled>🔍 Tarjar</button>
+        </div>
+
+        <div class="divider" style="margin-left: auto;"></div>
         <button id="btn-cancel" class="btn btn-danger" style="display: none;">🛑 Cancelar</button>
-        <button id="btn-export" class="btn btn-success" style="margin-left: auto;" disabled>💾 Exportar Seguro</button>
+        <button id="btn-export" class="btn btn-success" disabled>💾 Exportar Seguro</button>
     </div>
 
     <div id="viewer-container">
@@ -136,65 +151,37 @@
             NomesMaiusculos: /\b[A-ZÁÉÍÓÚÀÂÊÔÃÕÇ]{3,}\s+(?:(?:DA|DE|DO|DAS|DOS)\s+)?[A-ZÁÉÍÓÚÀÂÊÔÃÕÇ]{3,}(?:\s+(?:(?:DA|DE|DO|DAS|DOS)\s+)?[A-ZÁÉÍÓÚÀÂÊÔÃÕÇ]{3,})*\b/g
         };
 
-        // --- SISTEMA DE EXCEÇÕES (LocalStorage) ---
         const TERMOS_PADRAO = ['LEI', 'DECRETO', 'PORTARIA', 'DATA', 'VENCIMENTO', 'PREFEITURA', 'SECRETARIA', 'MUNICIPAL', 'ESTADUAL', 'FEDERAL', 'COMPLEMENTAR', 'ARTIGO', 'INCISO', 'PARÁGRAFO', 'ESTADO', 'DISTRITO', 'CONCURSO', 'PÚBLICO', 'EDITAL', 'PROCESSO', 'GABINETE', 'DIÁRIO', 'OFICIAL', 'RESOLUÇÃO', 'PAÇO', 'MUNICÍPIO', 'PODER', 'EXECUTIVO', 'LEGISLATIVO', 'CARGO', 'LOTADA', 'MATRÍCULA', 'SÍMBOLO', 'NÍVEL', 'FUNÇÃO'];
-        
         let TERMOS_IGNORADOS = new Set();
 
         function carregarExcecoes() {
             const salvas = localStorage.getItem('ater_excecoes');
-            if (salvas) {
-                TERMOS_IGNORADOS = new Set(JSON.parse(salvas));
-            } else {
-                TERMOS_IGNORADOS = new Set(TERMOS_PADRAO);
-                salvarExcecoes();
-            }
+            if (salvas) TERMOS_IGNORADOS = new Set(JSON.parse(salvas));
+            else { TERMOS_IGNORADOS = new Set(TERMOS_PADRAO); salvarExcecoes(); }
             renderizarChips();
         }
-
-        function salvarExcecoes() {
-            localStorage.setItem('ater_excecoes', JSON.stringify([...TERMOS_IGNORADOS]));
-            renderizarChips();
-        }
-
+        function salvarExcecoes() { localStorage.setItem('ater_excecoes', JSON.stringify([...TERMOS_IGNORADOS])); renderizarChips(); }
         function adicionarTermo(texto) {
             const formatado = texto.trim().toUpperCase().replace(/[.,]/g, '');
-            if (formatado && !TERMOS_IGNORADOS.has(formatado)) {
-                TERMOS_IGNORADOS.add(formatado);
-                salvarExcecoes();
-            }
+            if (formatado && !TERMOS_IGNORADOS.has(formatado)) { TERMOS_IGNORADOS.add(formatado); salvarExcecoes(); }
             document.getElementById('input-termo').value = '';
         }
-
-        function removerTermo(texto) {
-            TERMOS_IGNORADOS.delete(texto);
-            salvarExcecoes();
-        }
-
+        function removerTermo(texto) { TERMOS_IGNORADOS.delete(texto); salvarExcecoes(); }
         function renderizarChips() {
-            const container = document.getElementById('chip-container');
-            container.innerHTML = '';
-            // Ordena alfabeticamente para visualização
+            const container = document.getElementById('chip-container'); container.innerHTML = '';
             [...TERMOS_IGNORADOS].sort().forEach(termo => {
-                const chip = document.createElement('div');
-                chip.className = 'chip';
+                const chip = document.createElement('div'); chip.className = 'chip';
                 chip.innerHTML = `<span>${termo}</span> <span class="chip-remove" onclick="removerTermo('${termo}')">×</span>`;
                 container.appendChild(chip);
             });
         }
 
-        // Lógica da UI do Modal
         document.getElementById('btn-excecoes').onclick = () => document.getElementById('modal-excecoes').style.display = 'flex';
         document.getElementById('btn-close-modal').onclick = () => document.getElementById('modal-excecoes').style.display = 'none';
         document.getElementById('btn-add-termo').onclick = () => adicionarTermo(document.getElementById('input-termo').value);
-        document.getElementById('input-termo').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') adicionarTermo(e.target.value);
-        });
-
-        // Inicializa as exceções
+        document.getElementById('input-termo').addEventListener('keypress', e => { if (e.key === 'Enter') adicionarTermo(e.target.value); });
         carregarExcecoes();
 
-        // --- CORE SYSTEM (Ater V12 adaptado) ---
         const state = {
             pdfDoc: null, pagesData: [], mode: 'view', scale: 1.5,
             isDrawing: false, startX: 0, startY: 0, currentTarja: null,
@@ -207,8 +194,59 @@
             btnZoomIn: document.getElementById('btn-zoom-in'), btnZoomOut: document.getElementById('btn-zoom-out'),
             btnCancel: document.getElementById('btn-cancel'), btnExport: document.getElementById('btn-export'),
             viewer: document.getElementById('viewer-container'), welcomeMsg: document.getElementById('welcome-msg'),
-            sysStatusText: document.getElementById('sys-status-text'), dragOverlay: document.getElementById('drag-overlay')
+            sysStatusText: document.getElementById('sys-status-text'), dragOverlay: document.getElementById('drag-overlay'),
+            inputSearch: document.getElementById('input-search'), btnSearch: document.getElementById('btn-search') // Mapeamento novo
         };
+
+        // --- SISTEMA DE BUSCA CUSTOMIZADA ---
+        UI.btnSearch.onclick = () => executarBuscaCustomizada();
+        UI.inputSearch.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') executarBuscaCustomizada();
+        });
+
+        function executarBuscaCustomizada() {
+            const termo = UI.inputSearch.value.trim();
+            if (!termo) return;
+            if (termo.length < 2) {
+                alert("A palavra a ser tarjada deve ter pelo menos 2 caracteres.");
+                return;
+            }
+
+            UI.sysStatusText.textContent = `Buscando e tarjando "${termo}"...`;
+            
+            // Escapa caracteres especiais de Regex que o usuário possa ter digitado (ex: .)
+            const termoEscapado = termo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            // Cria um Regex Case-Insensitive global para a palavra exata
+            const regexCustomizado = new RegExp(termoEscapado, 'gi');
+
+            let totalEncontrado = 0;
+
+            state.pagesData.forEach(pageData => {
+                pageData.textItems.forEach(item => {
+                    const text = item.str;
+                    if (!text.trim()) return;
+
+                    const matches = [...text.matchAll(regexCustomizado)];
+                    if (matches.length > 0) {
+                        const tx = pdfjsLib.Util.transform(pageData.viewport.transform, item.transform);
+                        const totalWidth = item.width * pageData.viewport.scale;
+                        const height = item.height || Math.abs(tx[3]);
+                        const offsetY = height * 0.85;
+
+                        matches.forEach(match => {
+                            const startX = tx[4] + (totalWidth * (match.index / text.length));
+                            const tarjaWidth = totalWidth * (match[0].length / text.length);
+                            // Usa o tipo 'custom' para aplicar a cor Laranja
+                            addTarja(pageData.layer, startX, tx[5] - offsetY, tarjaWidth, height, 'custom');
+                            totalEncontrado++;
+                        });
+                    }
+                });
+            });
+
+            UI.sysStatusText.textContent = `Busca concluída: ${totalEncontrado} ocorrência(s) tarjada(s) para "${termo}".`;
+            UI.inputSearch.value = ''; // Limpa o campo após o uso
+        }
 
         // Drag & Drop
         let dragCounter = 0;
@@ -241,6 +279,7 @@
             UI.btnView.disabled = !enabled; UI.btnDraw.disabled = !enabled;
             UI.btnZoomIn.disabled = !enabled; UI.btnZoomOut.disabled = !enabled;
             UI.btnExport.disabled = !enabled; UI.btnClear.disabled = !enabled;
+            UI.inputSearch.disabled = !enabled; UI.btnSearch.disabled = !enabled; // Libera a busca customizada
         }
 
         UI.btnView.onclick = () => setMode('view');
@@ -255,7 +294,7 @@
 
         UI.btnClear.onclick = () => {
             state.pdfDoc = null; state.pagesData = []; state.cancelRequested = false;
-            UI.viewer.innerHTML = ''; UI.fileInput.value = ''; 
+            UI.viewer.innerHTML = ''; UI.fileInput.value = ''; UI.inputSearch.value = '';
             UI.viewer.appendChild(UI.welcomeMsg); UI.sysStatusText.textContent = "Sistema Ocioso.";
             setUIState(false);
         };
@@ -310,13 +349,10 @@
                     const matches = [...text.matchAll(PATTERNS[key])];
                     for (const match of matches) {
                         const matchText = match[0];
-
-                        // FILTRO COM O SET DINÂMICO
                         if (key === 'NomesCompostos' || key === 'NomesMaiusculos') {
                             const palavras = matchText.toUpperCase().replace(/[.,]/g, '').split(/\s+/);
                             if (palavras.some(p => TERMOS_IGNORADOS.has(p))) continue; 
                         }
-
                         const startX = tx[4] + (totalWidth * (match.index / text.length));
                         const tarjaWidth = totalWidth * (matchText.length / text.length);
                         addTarja(pageData.layer, startX, tx[5] - offsetY, tarjaWidth, height, 'regex');
@@ -374,6 +410,8 @@
                 p.canvas.width = p.viewport.width; p.canvas.height = p.viewport.height;
                 await page.render({ canvasContext: p.ctx, viewport: p.viewport }).promise;
                 p.layer.innerHTML = ''; applyRegexResults(i); 
+                // Nota Técnica: Tarjas de busca customizada e manuais são perdidas no zoom por não estarem no state. 
+                // O ideal é definir o zoom antes de iniciar a busca customizada e os ajustes manuais.
             }
             document.getElementById('sys-status-text').textContent = `Zoom ajustado para ${state.scale.toFixed(1)}x.`;
         }
@@ -394,7 +432,7 @@
                 if (i > 0) doc.addPage();
                 doc.addImage(img, 'JPEG', 0, 0, pw, ph);
             }
-            doc.save('ater_v13_anonimizado.pdf');
+            doc.save('ater_v14_anonimizado.pdf');
             document.getElementById('sys-status-text').textContent = "Download concluído com sucesso.";
             setTimeout(() => { document.getElementById('progress-container').style.display = 'none'; document.getElementById('progress-bar').style.width = '0%'; }, 2000);
             setUIState(true);
