@@ -8,33 +8,51 @@
         * { box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1e1e1e; margin: 0; display: flex; flex-direction: column; height: 100vh; color: #f0f0f0; overflow: hidden; }
         
-        .toolbar { background: #111; padding: 10px 20px; display: flex; gap: 10px; align-items: center; border-bottom: 1px solid #333; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.5); flex-wrap: wrap; }
-        .toolbar h1 { margin: 0 15px 0 0; font-size: 1.1rem; color: #007bff; letter-spacing: 1px; }
+        .toolbar { background: #111; padding: 10px 20px; display: flex; gap: 8px; align-items: center; border-bottom: 1px solid #333; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.5); flex-wrap: wrap; flex-shrink: 0; }
+        .toolbar h1 { margin: 0 10px 0 0; font-size: 1.1rem; color: #007bff; letter-spacing: 1px; }
         
-        .btn { background: #333; color: white; border: 1px solid #444; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
+        .btn { background: #333; color: white; border: 1px solid #444; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
         .btn:hover:not(:disabled) { background: #444; }
         .btn:disabled { opacity: 0.4; cursor: not-allowed; }
         .btn.active { background: #007bff; border-color: #0056b3; font-weight: bold; }
         .btn-danger { background: #dc3545; border-color: #c82333; }
         .btn-danger:hover:not(:disabled) { background: #c82333; }
         .btn-success { background: #28a745; border-color: #218838; }
+        .btn-info { background: #17a2b8; border-color: #117a8b; }
+        .btn-info:hover:not(:disabled) { background: #117a8b; }
         .btn-warning { background: #ff9800; border-color: #e68a00; color: #111; font-weight: bold; }
         .btn-warning:hover:not(:disabled) { background: #e68a00; }
         
-        .divider { width: 1px; height: 24px; background: #444; margin: 0 5px; }
+        .divider { width: 1px; height: 24px; background: #444; margin: 0 2px; }
         
-        #file-input { display: none; }
-        .file-label { background: #222; color: #ccc; border: 1px solid #444; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 12px; }
+        input[type="file"] { display: none; }
+        .file-label { background: #222; color: #ccc; border: 1px solid #444; padding: 6px 10px; border-radius: 3px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 5px;}
         .file-label:hover { background: #333; }
+        .file-label.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
 
-        /* Campo de Busca Customizada */
-        .search-group { display: flex; gap: 5px; margin-left: 10px; }
-        .search-group input { background: #222; border: 1px solid #444; color: white; padding: 6px 10px; border-radius: 4px; font-size: 12px; outline: none; width: 160px; transition: 0.2s; }
+        .search-group { display: flex; gap: 5px; margin-left: 2px; }
+        .search-group input { background: #222; border: 1px solid #444; color: white; padding: 6px 10px; border-radius: 4px; font-size: 12px; outline: none; width: 120px; transition: 0.2s; }
         .search-group input:focus { border-color: #ff9800; }
         .search-group input:disabled { opacity: 0.4; cursor: not-allowed; }
 
+        .main-wrapper { display: flex; flex-grow: 1; overflow: hidden; position: relative; }
         #viewer-container { flex-grow: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; gap: 40px; background: #2d2d2d; position: relative; }
         
+        /* Sidebar Histórico Melhorado */
+        #sidebar-historico { width: 300px; min-width: 300px; background: #1a1a1a; border-left: 1px solid #333; display: flex; flex-direction: column; z-index: 90; }
+        .sidebar-header { padding: 12px 15px; background: #111; border-bottom: 1px solid #333; font-weight: bold; color: #007bff; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+        .badge-count { background: #333; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 11px; }
+        #historico-list { flex-grow: 1; overflow-y: auto; padding: 15px 10px; display: flex; flex-direction: column; gap: 15px; }
+        
+        .page-group-header { font-size: 12px; color: #aaa; border-bottom: 1px solid #333; padding-bottom: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; }
+        .historico-item { background: #2a2a2a; border-radius: 4px; padding: 8px; font-size: 11px; position: relative; border-left: 3px solid #555; display: flex; flex-direction: column; gap: 4px; margin-bottom: 5px; }
+        .historico-item.regex { border-left-color: #007bff; }
+        .historico-item.custom { border-left-color: #ff9800; }
+        .historico-item.manual { border-left-color: #aaa; }
+        .historico-empty { text-align: center; color: #666; font-style: italic; padding: 20px; font-size: 12px; }
+        .hist-remove { position: absolute; top: 50%; transform: translateY(-50%); right: 5px; color: #888; cursor: pointer; font-size: 20px; line-height: 1; padding: 5px; }
+        .hist-remove:hover { color: #dc3545; }
+
         .page-container { position: relative; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.8); transition: transform 0.2s; }
         .interaction-layer { position: absolute; inset: 0; z-index: 10; cursor: default; }
         .interaction-layer.draw-mode { cursor: crosshair; }
@@ -44,18 +62,17 @@
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #007bff; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Estilos de Tarjas */
         .tarja { position: absolute; z-index: 20; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; border-radius: 2px; }
-        .tarja.regex { background: rgba(0, 123, 255, 0.45); border-color: #007bff; } /* Automáticas: Azul */
-        .tarja.custom { background: rgba(255, 152, 0, 0.45); border-color: #ff9800; } /* Busca Customizada: Laranja */
-        .tarja.manual { background: rgba(0, 0, 0, 0.75); border-color: #000; } /* Desenho: Preto */
+        .tarja.regex { background: rgba(0, 123, 255, 0.45); border-color: #007bff; } 
+        .tarja.custom { background: rgba(255, 152, 0, 0.45); border-color: #ff9800; } 
+        .tarja.manual { background: rgba(0, 0, 0, 0.75); border-color: #000; } 
         .tarja.drawing { background: rgba(255, 193, 7, 0.3); border: 2px dashed #ffc107; }
         
-        .tarja-remove { position: absolute; top: -8px; right: -8px; background: #dc3545; color: white; width: 18px; height: 18px; border-radius: 50%; text-align: center; line-height: 16px; font-size: 14px; font-weight: bold; cursor: pointer; display: none; z-index: 30; box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .tarja-remove { position: absolute; top: -12px; right: -12px; background: #dc3545; color: white; width: 24px; height: 24px; border-radius: 50%; text-align: center; line-height: 22px; font-size: 18px; font-weight: bold; cursor: pointer; display: none; z-index: 30; box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
         .tarja:hover { outline: 2px solid #ffc107; z-index: 25; }
         .tarja:hover .tarja-remove { display: block; }
 
-        #footer { background: #111; border-top: 1px solid #333; display: flex; flex-direction: column; z-index: 100; }
+        #footer { background: #111; border-top: 1px solid #333; display: flex; flex-direction: column; z-index: 100; flex-shrink: 0; }
         #progress-container { width: 100%; height: 4px; background: #222; display: none; }
         #progress-bar { width: 0%; height: 100%; background: #007bff; transition: width 0.2s; }
         .status-panel { padding: 8px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #aaa; }
@@ -64,12 +81,13 @@
         #drag-overlay .box { border: 4px dashed #007bff; border-radius: 20px; padding: 50px 100px; text-align: center; background: rgba(30, 30, 30, 0.9); box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
         #drag-overlay h2 { color: #007bff; margin: 0 0 10px 0; font-size: 2rem; }
 
-        #modal-excecoes { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 10000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 10000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
         .modal-content { background: #1e1e1e; border: 1px solid #333; border-radius: 8px; width: 500px; max-width: 90%; padding: 25px; box-shadow: 0 15px 40px rgba(0,0,0,0.7); display: flex; flex-direction: column; gap: 15px; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; }
         .modal-header h2 { margin: 0; font-size: 1.2rem; color: #007bff; }
         .btn-close { background: none; border: none; color: #aaa; font-size: 1.5rem; cursor: pointer; }
         .btn-close:hover { color: white; }
+        
         .input-group { display: flex; gap: 10px; }
         .input-group input { flex-grow: 1; background: #2a2a2a; border: 1px solid #444; color: white; padding: 8px 12px; border-radius: 4px; outline: none; font-size: 14px; }
         .input-group input:focus { border-color: #007bff; }
@@ -85,13 +103,13 @@
 
     <div id="drag-overlay"><div class="box"><h2>Solte o PDF Aqui</h2></div></div>
 
-    <div id="modal-excecoes">
+    <div id="modal-excecoes" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>⚙️ Dicionário de Exceções</h2>
-                <button class="btn-close" id="btn-close-modal">×</button>
+                <button class="btn-close" onclick="document.getElementById('modal-excecoes').style.display = 'none'">×</button>
             </div>
-            <p style="font-size: 12px; color: #888; margin: 0;">Palavras nesta lista serão ignoradas pelas tarjas automáticas para evitar marcações erradas.</p>
+            <p style="font-size: 12px; color: #888; margin: 0;">Palavras nesta lista serão ignoradas pelas tarjas automáticas.</p>
             <div class="input-group">
                 <input type="text" id="input-termo" placeholder="Digite uma palavra (ex: SECRETARIA)" autocomplete="off">
                 <button class="btn btn-success" id="btn-add-termo">Adicionar</button>
@@ -101,35 +119,63 @@
     </div>
 
     <div class="toolbar">
-        <h1>ATER V14</h1>
-        <label class="file-label" id="lbl-file">📂 Abrir PDF <input type="file" id="file-input" accept="application/pdf" /></label>
-        <button id="btn-clear" class="btn" title="Limpar área de trabalho" disabled>🗑️ Limpar</button>
+        <h1>ATER V17</h1>
+        
+        <label class="file-label" id="lbl-file" title="Abra o PDF Original primeiro">1. Abrir PDF <input type="file" id="file-input" accept="application/pdf" /></label>
+        <button id="btn-clear-doc" class="btn" title="Descarregar PDF" disabled>🗑️ Fechar</button>
         
         <div class="divider"></div>
-        <button id="btn-mode-view" class="btn active" disabled>🖱️ Navegar</button>
-        <button id="btn-mode-draw" class="btn" disabled>✏️ Desenhar Tarja</button>
-        
+
+        <label class="file-label btn-info disabled" id="lbl-import-rascunho" title="Importar marcações de outro servidor">📥 Importar .ater <input type="file" id="file-import" accept=".ater,.json" disabled/></label>
+        <button id="btn-export-rascunho" class="btn btn-info" title="Salva os metadados para envio ao Revisor" disabled>📤 Salvar Projeto</button>
+        <button id="btn-clear-tarjas" class="btn" title="Remover todas as marcações da tela" disabled>🧹 Limpar Tudo</button>
+
         <div class="divider"></div>
+
+        <button id="btn-mode-view" class="btn active" disabled>🖱️</button>
+        <button id="btn-mode-draw" class="btn" disabled>✏️ Desenhar</button>
         <button id="btn-zoom-out" class="btn" disabled>Zoom -</button>
         <button id="btn-zoom-in" class="btn" disabled>Zoom +</button>
-        
-        <div class="divider"></div>
         <button id="btn-excecoes" class="btn">⚙️ Exceções</button>
+
+        <div class="divider"></div>
 
         <div class="search-group">
             <input type="text" id="input-search" placeholder="Procurar e tarjar..." autocomplete="off" disabled>
-            <button id="btn-search" class="btn btn-warning" title="Encontrar e tarjar termo no documento inteiro" disabled>🔍 Tarjar</button>
+            <button id="btn-search" class="btn btn-warning" disabled>🔍 Buscar</button>
         </div>
 
         <div class="divider" style="margin-left: auto;"></div>
+        
         <button id="btn-cancel" class="btn btn-danger" style="display: none;">🛑 Cancelar</button>
-        <button id="btn-export" class="btn btn-success" disabled>💾 Exportar Seguro</button>
+        <button id="btn-export" class="btn btn-success" disabled>💾 Concluir (Exportar PDF)</button>
     </div>
 
-    <div id="viewer-container">
-        <div id="welcome-msg" style="text-align: center; margin-top: 100px; color: #666; max-width: 500px;">
-            <h2>Ambiente de Anonimização Pronto</h2>
-            <p><strong>Arraste um PDF</strong> para esta janela. Processamento 100% offline via regex.</p>
+    <div class="main-wrapper">
+        <div id="viewer-container">
+            <div id="welcome-msg" style="text-align: center; margin-top: 100px; color: #666; max-width: 500px;">
+                <h2>Workflow Ater V17</h2>
+                <p><strong>Arraste um PDF Original</strong> para iniciar a edição ou revisão.</p>
+                <div style="text-align: left; background: #222; padding: 15px; border-radius: 8px; margin-top: 20px; font-size: 13px;">
+                    <p style="margin-top: 0; color: #007bff; font-weight: bold;">Como funciona a Revisão em Dupla?</p>
+                    <ol style="margin: 0; padding-left: 20px; color: #ccc;">
+                        <li>O Analista processa o PDF e clica em <strong>"Salvar Projeto"</strong>.</li>
+                        <li>O Analista envia o PDF Original e o arquivo ".ater" gerado.</li>
+                        <li>O Revisor abre o PDF Original aqui, depois importa o arquivo ".ater" em <strong>"Importar .ater"</strong>.</li>
+                        <li>As marcações reaparecem exatamente onde estavam para conferência.</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div id="sidebar-historico">
+            <div class="sidebar-header">
+                <span>📑 Sumário de Revisão</span>
+                <span class="badge-count" id="contador-tarjas">0</span>
+            </div>
+            <div class="historico-list" id="historico-list">
+                <div class="historico-empty">Abra um documento para rastrear as tarjas geradas.</div>
+            </div>
         </div>
     </div>
     
@@ -153,7 +199,43 @@
 
         const TERMOS_PADRAO = ['LEI', 'DECRETO', 'PORTARIA', 'DATA', 'VENCIMENTO', 'PREFEITURA', 'SECRETARIA', 'MUNICIPAL', 'ESTADUAL', 'FEDERAL', 'COMPLEMENTAR', 'ARTIGO', 'INCISO', 'PARÁGRAFO', 'ESTADO', 'DISTRITO', 'CONCURSO', 'PÚBLICO', 'EDITAL', 'PROCESSO', 'GABINETE', 'DIÁRIO', 'OFICIAL', 'RESOLUÇÃO', 'PAÇO', 'MUNICÍPIO', 'PODER', 'EXECUTIVO', 'LEGISLATIVO', 'CARGO', 'LOTADA', 'MATRÍCULA', 'SÍMBOLO', 'NÍVEL', 'FUNÇÃO'];
         let TERMOS_IGNORADOS = new Set();
+        let historicoTarjas = [];
 
+        const state = {
+            pdfDoc: null, pagesData: [], mode: 'view', scale: 1.5,
+            isDrawing: false, startX: 0, startY: 0, currentTarja: null,
+            isProcessing: false, cancelRequested: false
+        };
+
+        const UI = {
+            fileInput: document.getElementById('file-input'), 
+            btnClearDoc: document.getElementById('btn-clear-doc'),
+            btnClearTarjas: document.getElementById('btn-clear-tarjas'),
+            btnView: document.getElementById('btn-mode-view'), 
+            btnDraw: document.getElementById('btn-mode-draw'),
+            btnZoomIn: document.getElementById('btn-zoom-in'), 
+            btnZoomOut: document.getElementById('btn-zoom-out'),
+            btnCancel: document.getElementById('btn-cancel'), 
+            btnExport: document.getElementById('btn-export'),
+            viewer: document.getElementById('viewer-container'), 
+            welcomeMsg: document.getElementById('welcome-msg'),
+            sysStatusText: document.getElementById('sys-status-text'), 
+            dragOverlay: document.getElementById('drag-overlay'),
+            inputSearch: document.getElementById('input-search'), 
+            btnSearch: document.getElementById('btn-search'),
+            btnExportRascunho: document.getElementById('btn-export-rascunho'),
+            fileImportRascunho: document.getElementById('file-import'),
+            lblImportRascunho: document.getElementById('lbl-import-rascunho'),
+            btnExcecoes: document.getElementById('btn-excecoes'),
+            modalExcecoes: document.getElementById('modal-excecoes'),
+            inputTermo: document.getElementById('input-termo'),
+            btnAddTermo: document.getElementById('btn-add-termo'),
+            chipContainer: document.getElementById('chip-container'),
+            historicoList: document.getElementById('historico-list'),
+            contadorTarjas: document.getElementById('contador-tarjas')
+        };
+
+        // --- SISTEMA DE EXCEÇÕES ---
         function carregarExcecoes() {
             const salvas = localStorage.getItem('ater_excecoes');
             if (salvas) TERMOS_IGNORADOS = new Set(JSON.parse(salvas));
@@ -164,91 +246,160 @@
         function adicionarTermo(texto) {
             const formatado = texto.trim().toUpperCase().replace(/[.,]/g, '');
             if (formatado && !TERMOS_IGNORADOS.has(formatado)) { TERMOS_IGNORADOS.add(formatado); salvarExcecoes(); }
-            document.getElementById('input-termo').value = '';
+            UI.inputTermo.value = '';
         }
         function removerTermo(texto) { TERMOS_IGNORADOS.delete(texto); salvarExcecoes(); }
         function renderizarChips() {
-            const container = document.getElementById('chip-container'); container.innerHTML = '';
+            UI.chipContainer.innerHTML = '';
             [...TERMOS_IGNORADOS].sort().forEach(termo => {
                 const chip = document.createElement('div'); chip.className = 'chip';
                 chip.innerHTML = `<span>${termo}</span> <span class="chip-remove" onclick="removerTermo('${termo}')">×</span>`;
-                container.appendChild(chip);
+                UI.chipContainer.appendChild(chip);
+            });
+        }
+        
+        UI.btnExcecoes.onclick = () => UI.modalExcecoes.style.display = 'flex';
+        UI.btnAddTermo.onclick = () => adicionarTermo(UI.inputTermo.value);
+        UI.inputTermo.addEventListener('keypress', e => { if (e.key === 'Enter') adicionarTermo(e.target.value); });
+        carregarExcecoes();
+
+        // --- SISTEMA DE METADADOS & SIDEBAR ---
+        function registrarNoHistorico(id, type, pageIndex, w, h, termo, normX, normY, normW, normH) {
+            if (historicoTarjas.some(t => t.id === id)) return; 
+            const hora = new Date().toLocaleTimeString('pt-BR');
+            const registro = { id, type, pagina: pageIndex + 1, width: Math.round(w), height: Math.round(h), hora, termo, nx: normX, ny: normY, nw: normW, nh: normH };
+            historicoTarjas.push(registro);
+            renderizarSidebarHistorico();
+            atualizarContador();
+        }
+
+        function renderizarSidebarHistorico() {
+            UI.historicoList.innerHTML = '';
+            if (historicoTarjas.length === 0) {
+                UI.historicoList.innerHTML = '<div class="historico-empty">O documento não possui marcações.</div>';
+                return;
+            }
+            const agrupado = historicoTarjas.reduce((acc, obj) => {
+                let key = obj.pagina;
+                if (!acc[key]) acc[key] = [];
+                acc[key].push(obj);
+                return acc;
+            }, {});
+
+            Object.keys(agrupado).sort((a,b) => parseInt(a) - parseInt(b)).forEach(pag => {
+                const groupDiv = document.createElement('div');
+                groupDiv.innerHTML = `<div class="page-group-header"><span>Página ${pag}</span> <span>${agrupado[pag].length} tarja(s)</span></div>`;
+                agrupado[pag].sort((a,b) => b.id.localeCompare(a.id)).forEach(registro => {
+                    const item = document.createElement('div');
+                    item.className = `historico-item ${registro.type}`;
+                    item.id = `hist-${registro.id}`;
+                    let icone = '✏️', cor = '#ccc';
+                    if (registro.type === 'regex') { icone = '🤖'; cor = '#007bff'; }
+                    else if (registro.type === 'custom') { icone = '🔍'; cor = '#ff9800'; }
+                    item.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding-right: 20px;">
+                            <span style="color: ${cor}; font-weight: bold;">${icone} ${registro.termo || 'Marcação Manual'}</span>
+                        </div>
+                        <div style="font-size: 9px; color: #888;">Gerado às ${registro.hora}</div>
+                        <div class="hist-remove" onclick="removerTarjaPeloSidebar('${registro.id}')" title="Excluir tarja">×</div>
+                    `;
+                    groupDiv.appendChild(item);
+                });
+                UI.historicoList.appendChild(groupDiv);
             });
         }
 
-        document.getElementById('btn-excecoes').onclick = () => document.getElementById('modal-excecoes').style.display = 'flex';
-        document.getElementById('btn-close-modal').onclick = () => document.getElementById('modal-excecoes').style.display = 'none';
-        document.getElementById('btn-add-termo').onclick = () => adicionarTermo(document.getElementById('input-termo').value);
-        document.getElementById('input-termo').addEventListener('keypress', e => { if (e.key === 'Enter') adicionarTermo(e.target.value); });
-        carregarExcecoes();
+        function removerTarjaPeloSidebar(id) {
+            const tarja = document.querySelector(`.tarja[data-id="${id}"]`);
+            if (tarja) tarja.remove();
+            removerRegistroArrayEDOM(id);
+        }
 
-        const state = {
-            pdfDoc: null, pagesData: [], mode: 'view', scale: 1.5,
-            isDrawing: false, startX: 0, startY: 0, currentTarja: null,
-            isProcessing: false, cancelRequested: false
+        function removerRegistroArrayEDOM(id) {
+            historicoTarjas = historicoTarjas.filter(item => item.id !== id);
+            renderizarSidebarHistorico();
+            atualizarContador();
+        }
+
+        function limparHistorico() {
+            historicoTarjas = [];
+            renderizarSidebarHistorico();
+            atualizarContador();
+        }
+
+        function atualizarContador() {
+            UI.contadorTarjas.textContent = historicoTarjas.length;
+        }
+
+        // --- EXPORTAÇÃO E IMPORTAÇÃO ---
+        UI.btnExportRascunho.onclick = () => {
+            if (historicoTarjas.length === 0) { alert("Não há tarjas para salvar. Faça alguma marcação primeiro."); return; }
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(historicoTarjas));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            const dataAtual = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+            downloadAnchorNode.setAttribute("download", `Projeto_Revisao_${dataAtual}.ater`);
+            document.body.appendChild(downloadAnchorNode); downloadAnchorNode.click(); downloadAnchorNode.remove();
+            UI.sysStatusText.textContent = "Projeto salvo. Envie o PDF original e este arquivo (.ater) para o Revisor.";
         };
 
-        const UI = {
-            fileInput: document.getElementById('file-input'), btnClear: document.getElementById('btn-clear'),
-            btnView: document.getElementById('btn-mode-view'), btnDraw: document.getElementById('btn-mode-draw'),
-            btnZoomIn: document.getElementById('btn-zoom-in'), btnZoomOut: document.getElementById('btn-zoom-out'),
-            btnCancel: document.getElementById('btn-cancel'), btnExport: document.getElementById('btn-export'),
-            viewer: document.getElementById('viewer-container'), welcomeMsg: document.getElementById('welcome-msg'),
-            sysStatusText: document.getElementById('sys-status-text'), dragOverlay: document.getElementById('drag-overlay'),
-            inputSearch: document.getElementById('input-search'), btnSearch: document.getElementById('btn-search') // Mapeamento novo
+        UI.fileImportRascunho.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const importedData = JSON.parse(event.target.result);
+                    if (!Array.isArray(importedData)) throw new Error("Formato inválido");
+                    state.pagesData.forEach(p => p.layer.innerHTML = '');
+                    historicoTarjas = []; 
+                    
+                    importedData.forEach(tarja => {
+                        const realX = tarja.nx * state.scale, realY = tarja.ny * state.scale, realW = tarja.nw * state.scale, realH = tarja.nh * state.scale;
+                        if(tarja.pagina - 1 < state.pagesData.length) {
+                            const layer = state.pagesData[tarja.pagina - 1].layer;
+                            addTarjaFromImport(layer, realX, realY, realW, realH, tarja.type, tarja.pagina - 1, tarja.termo, tarja.id, tarja);
+                        }
+                    });
+                    UI.sysStatusText.textContent = `Projeto carregado! ${importedData.length} marcações restauradas para edição.`;
+                } catch (error) { alert("Erro ao ler o arquivo. Verifique se o arquivo .ater é válido."); }
+                e.target.value = ''; 
+            };
+            reader.readAsText(file);
         };
 
-        // --- SISTEMA DE BUSCA CUSTOMIZADA ---
+        // --- BUSCA CUSTOMIZADA ---
         UI.btnSearch.onclick = () => executarBuscaCustomizada();
-        UI.inputSearch.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') executarBuscaCustomizada();
-        });
+        UI.inputSearch.addEventListener('keypress', (e) => { if (e.key === 'Enter') executarBuscaCustomizada(); });
 
         function executarBuscaCustomizada() {
             const termo = UI.inputSearch.value.trim();
-            if (!termo) return;
-            if (termo.length < 2) {
-                alert("A palavra a ser tarjada deve ter pelo menos 2 caracteres.");
-                return;
-            }
-
+            if (!termo || termo.length < 2) return;
             UI.sysStatusText.textContent = `Buscando e tarjando "${termo}"...`;
-            
-            // Escapa caracteres especiais de Regex que o usuário possa ter digitado (ex: .)
-            const termoEscapado = termo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            // Cria um Regex Case-Insensitive global para a palavra exata
-            const regexCustomizado = new RegExp(termoEscapado, 'gi');
-
+            const regexCustomizado = new RegExp(termo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
             let totalEncontrado = 0;
 
-            state.pagesData.forEach(pageData => {
+            state.pagesData.forEach((pageData, index) => {
                 pageData.textItems.forEach(item => {
                     const text = item.str;
                     if (!text.trim()) return;
-
                     const matches = [...text.matchAll(regexCustomizado)];
                     if (matches.length > 0) {
                         const tx = pdfjsLib.Util.transform(pageData.viewport.transform, item.transform);
-                        const totalWidth = item.width * pageData.viewport.scale;
-                        const height = item.height || Math.abs(tx[3]);
-                        const offsetY = height * 0.85;
-
+                        const totalWidth = item.width * pageData.viewport.scale, height = item.height || Math.abs(tx[3]), offsetY = height * 0.85;
                         matches.forEach(match => {
-                            const startX = tx[4] + (totalWidth * (match.index / text.length));
-                            const tarjaWidth = totalWidth * (match[0].length / text.length);
-                            // Usa o tipo 'custom' para aplicar a cor Laranja
-                            addTarja(pageData.layer, startX, tx[5] - offsetY, tarjaWidth, height, 'custom');
+                            const startX = tx[4] + (totalWidth * (match.index / text.length)), tarjaWidth = totalWidth * (match[0].length / text.length);
+                            addTarja(pageData.layer, startX, tx[5] - offsetY, tarjaWidth, height, 'custom', index, match[0]);
                             totalEncontrado++;
                         });
                     }
                 });
             });
-
-            UI.sysStatusText.textContent = `Busca concluída: ${totalEncontrado} ocorrência(s) tarjada(s) para "${termo}".`;
-            UI.inputSearch.value = ''; // Limpa o campo após o uso
+            UI.sysStatusText.textContent = `Busca concluída: ${totalEncontrado} ocorrência(s) tarjada(s).`;
+            UI.inputSearch.value = ''; 
         }
 
-        // Drag & Drop
+        // --- INGESTÃO DE ARQUIVO ---
         let dragCounter = 0;
         window.addEventListener('dragover', e => e.preventDefault());
         window.addEventListener('dragenter', e => { e.preventDefault(); dragCounter++; UI.dragOverlay.style.display = 'flex'; });
@@ -257,17 +408,19 @@
             e.preventDefault(); dragCounter = 0; UI.dragOverlay.style.display = 'none';
             if (e.dataTransfer.files && e.dataTransfer.files.length > 0) iniciarProcessamento(e.dataTransfer.files[0]);
         });
-
         UI.fileInput.onchange = e => { if (e.target.files[0]) iniciarProcessamento(e.target.files[0]); };
 
         async function iniciarProcessamento(file) {
             if (file.type !== 'application/pdf') return;
-            UI.btnClear.click(); UI.viewer.innerHTML = '';
-            UI.sysStatusText.textContent = "Lendo estrutura do PDF...";
             
+            // Clear current document state explicitly without clicking button
+            state.pdfDoc = null; state.pagesData = []; state.cancelRequested = false;
+            UI.viewer.innerHTML = ''; UI.fileInput.value = ''; UI.inputSearch.value = '';
+            limparHistorico();
+            
+            UI.sysStatusText.textContent = "Lendo estrutura do PDF...";
             const buffer = await file.arrayBuffer();
             state.pdfDoc = await pdfjsLib.getDocument({ data: buffer }).promise;
-            
             for (let i = 1; i <= state.pdfDoc.numPages; i++) await buildPageContainer(i);
             
             state.cancelRequested = false; state.isProcessing = true;
@@ -275,35 +428,52 @@
             processNextPage(0); 
         }
 
+        // --- CONTROLE DE UI ---
         function setUIState(enabled) {
             UI.btnView.disabled = !enabled; UI.btnDraw.disabled = !enabled;
             UI.btnZoomIn.disabled = !enabled; UI.btnZoomOut.disabled = !enabled;
-            UI.btnExport.disabled = !enabled; UI.btnClear.disabled = !enabled;
-            UI.inputSearch.disabled = !enabled; UI.btnSearch.disabled = !enabled; // Libera a busca customizada
+            UI.btnExport.disabled = !enabled; UI.btnClearDoc.disabled = !enabled;
+            UI.btnClearTarjas.disabled = !enabled;
+            UI.inputSearch.disabled = !enabled; UI.btnSearch.disabled = !enabled;
+            
+            UI.btnExportRascunho.disabled = !enabled;
+            UI.fileImportRascunho.disabled = !enabled;
+            
+            if (enabled) {
+                UI.lblImportRascunho.classList.remove('disabled');
+            } else {
+                UI.lblImportRascunho.classList.add('disabled');
+            }
         }
 
         UI.btnView.onclick = () => setMode('view');
         UI.btnDraw.onclick = () => setMode('draw');
-
         function setMode(m) {
-            state.mode = m;
-            UI.btnView.classList.toggle('active', m === 'view');
-            UI.btnDraw.classList.toggle('active', m === 'draw');
+            state.mode = m; UI.btnView.classList.toggle('active', m === 'view'); UI.btnDraw.classList.toggle('active', m === 'draw');
             state.pagesData.forEach(p => { if(p.layer) p.layer.classList.toggle('draw-mode', m === 'draw'); });
         }
 
-        UI.btnClear.onclick = () => {
+        UI.btnClearDoc.onclick = () => {
             state.pdfDoc = null; state.pagesData = []; state.cancelRequested = false;
             UI.viewer.innerHTML = ''; UI.fileInput.value = ''; UI.inputSearch.value = '';
+            limparHistorico();
             UI.viewer.appendChild(UI.welcomeMsg); UI.sysStatusText.textContent = "Sistema Ocioso.";
             setUIState(false);
+        };
+
+        UI.btnClearTarjas.onclick = () => {
+            if(confirm("Tem certeza que deseja remover TODAS as tarjas visíveis neste documento?")) {
+                state.pagesData.forEach(p => p.layer.innerHTML = '');
+                limparHistorico();
+                UI.sysStatusText.textContent = "Todas as tarjas foram removidas da tela.";
+            }
         };
 
         UI.btnCancel.onclick = () => {
             if (state.isProcessing) {
                 state.cancelRequested = true; state.isProcessing = false;
                 state.pagesData.forEach(p => p.container.classList.remove('processing'));
-                UI.btnCancel.style.display = 'none'; UI.sysStatusText.textContent = "Busca Cancelada.";
+                UI.btnCancel.style.display = 'none'; UI.sysStatusText.textContent = "Processamento Cancelado.";
                 setUIState(true); 
             }
         };
@@ -320,18 +490,18 @@
             state.pagesData.push({ num, viewport, container, canvas, ctx, layer, textItems: null });
             await page.render({ canvasContext: ctx, viewport }).promise;
             state.pagesData[num-1].textItems = (await page.getTextContent()).items;
-            setupManualDrawing(layer);
+            setupManualDrawing(layer, num-1);
         }
 
         function processNextPage(index) {
             if (state.cancelRequested) return;
             if (index >= state.pagesData.length) {
                 state.isProcessing = false; UI.btnCancel.style.display = 'none';
-                UI.sysStatusText.textContent = `Detecção Concluída (${state.pagesData.length} páginas analisadas).`;
+                UI.sysStatusText.textContent = `Detecção Automática Concluída. Revise o documento.`;
                 setUIState(true); return;
             }
             applyRegexResults(index);
-            setTimeout(() => processNextPage(index + 1), 10);
+            setTimeout(() => processNextPage(index + 1), 5);
         }
 
         function applyRegexResults(pageIndex) {
@@ -341,9 +511,7 @@
                 if (!text.trim()) return;
 
                 const tx = pdfjsLib.Util.transform(pageData.viewport.transform, item.transform);
-                const totalWidth = item.width * pageData.viewport.scale;
-                const height = item.height || Math.abs(tx[3]);
-                const offsetY = height * 0.85;
+                const totalWidth = item.width * pageData.viewport.scale, height = item.height || Math.abs(tx[3]), offsetY = height * 0.85;
 
                 for (const key in PATTERNS) {
                     const matches = [...text.matchAll(PATTERNS[key])];
@@ -353,26 +521,69 @@
                             const palavras = matchText.toUpperCase().replace(/[.,]/g, '').split(/\s+/);
                             if (palavras.some(p => TERMOS_IGNORADOS.has(p))) continue; 
                         }
-                        const startX = tx[4] + (totalWidth * (match.index / text.length));
-                        const tarjaWidth = totalWidth * (matchText.length / text.length);
-                        addTarja(pageData.layer, startX, tx[5] - offsetY, tarjaWidth, height, 'regex');
+                        const startX = tx[4] + (totalWidth * (match.index / text.length)), tarjaWidth = totalWidth * (matchText.length / text.length);
+                        
+                        addTarja(pageData.layer, startX, tx[5] - offsetY, tarjaWidth, height, 'regex', pageIndex, matchText);
                     }
                 }
             });
             pageData.container.classList.remove('processing');
         }
 
-        function addTarja(layer, x, y, w, h, type) {
-            const padX = 4, padY = 2, t = document.createElement('div');
-            t.className = `tarja ${type}`; t.style.left = (x - padX) + 'px'; t.style.top = (y - padY) + 'px';
+        function addTarja(layer, x, y, w, h, type, pageIndex, termo = null) {
+            const padX = 8, padY = 6, t = document.createElement('div');
+            const tarjaId = Date.now().toString() + Math.random().toString(36).substr(2, 5); 
+            
+            t.className = `tarja ${type}`; 
+            t.dataset.id = tarjaId;
+            t.style.left = (x - padX) + 'px'; t.style.top = (y - padY) + 'px';
             t.style.width = (w + (padX * 2)) + 'px'; t.style.height = (h + (padY * 2)) + 'px';
+            
             const del = document.createElement('div');
             del.className = 'tarja-remove'; del.textContent = '×';
-            del.onmousedown = e => e.stopPropagation(); del.onclick = e => { e.stopPropagation(); t.remove(); };
+            del.onmousedown = e => e.stopPropagation(); 
+            del.onclick = e => { 
+                e.stopPropagation(); 
+                removerRegistroArrayEDOM(tarjaId); 
+                t.remove(); 
+            };
+            
             t.appendChild(del); layer.appendChild(t);
+            
+            const normX = x / state.scale;
+            const normY = y / state.scale;
+            const normW = w / state.scale;
+            const normH = h / state.scale;
+
+            registrarNoHistorico(tarjaId, type, pageIndex, w, h, termo, normX, normY, normW, normH);
+            return tarjaId;
         }
 
-        function setupManualDrawing(layer) {
+        function addTarjaFromImport(layer, x, y, w, h, type, pageIndex, termo, id, rawObject) {
+            const padX = 8, padY = 6, t = document.createElement('div');
+            
+            t.className = `tarja ${type}`; 
+            t.dataset.id = id;
+            t.style.left = (x - padX) + 'px'; t.style.top = (y - padY) + 'px';
+            t.style.width = (w + (padX * 2)) + 'px'; t.style.height = (h + (padY * 2)) + 'px';
+            
+            const del = document.createElement('div');
+            del.className = 'tarja-remove'; del.textContent = '×';
+            del.onmousedown = e => e.stopPropagation(); 
+            del.onclick = e => { 
+                e.stopPropagation(); 
+                removerRegistroArrayEDOM(id); 
+                t.remove(); 
+            };
+            
+            t.appendChild(del); layer.appendChild(t);
+            
+            historicoTarjas.push(rawObject);
+            renderizarSidebarHistorico();
+            atualizarContador();
+        }
+
+        function setupManualDrawing(layer, pageIndex) {
             layer.onmousedown = (e) => {
                 if (state.mode !== 'draw') return; state.isDrawing = true;
                 const r = layer.getBoundingClientRect(); state.startX = e.clientX - r.left; state.startY = e.clientY - r.top;
@@ -388,32 +599,64 @@
             };
             layer.onmouseup = () => {
                 if (!state.isDrawing) return; state.isDrawing = false;
-                if (parseFloat(state.currentTarja.style.width || 0) > 5) {
+                const finalW = parseFloat(state.currentTarja.style.width || 0);
+                const finalH = parseFloat(state.currentTarja.style.height || 0);
+                const finalX = parseFloat(state.currentTarja.style.left || 0);
+                const finalY = parseFloat(state.currentTarja.style.top || 0);
+                
+                if (finalW > 5 && finalH > 5) {
+                    const tarjaId = Date.now().toString() + Math.random().toString(36).substr(2, 5);
                     state.currentTarja.className = 'tarja manual';
+                    state.currentTarja.dataset.id = tarjaId;
+                    
                     const del = document.createElement('div'); del.className = 'tarja-remove'; del.textContent = '×';
-                    del.onmousedown = e => e.stopPropagation(); del.onclick = e => { e.stopPropagation(); state.currentTarja.remove(); };
+                    del.onmousedown = e => e.stopPropagation(); 
+                    del.onclick = e => { 
+                        e.stopPropagation(); 
+                        removerRegistroArrayEDOM(tarjaId); 
+                        e.target.parentElement.remove(); 
+                    };
                     state.currentTarja.appendChild(del);
-                } else state.currentTarja.remove();
+
+                    const rawX = finalX + 8;
+                    const rawY = finalY + 6;
+                    const normX = rawX / state.scale;
+                    const normY = rawY / state.scale;
+                    const normW = finalW / state.scale;
+                    const normH = finalH / state.scale;
+
+                    registrarNoHistorico(tarjaId, 'manual', pageIndex, finalW, finalH, null, normX, normY, normW, normH);
+                } else {
+                    state.currentTarja.remove();
+                }
                 state.currentTarja = null;
             };
         }
 
         UI.btnZoomIn.onclick = () => changeZoom(0.2);
         UI.btnZoomOut.onclick = () => changeZoom(-0.2);
+        
         async function changeZoom(delta) {
             const newScale = state.scale + delta; if (newScale < 0.8 || newScale > 3.0) return;
-            state.scale = newScale; document.getElementById('sys-status-text').textContent = `Ajustando zoom...`;
+            state.scale = newScale; UI.sysStatusText.textContent = `Ajustando zoom...`;
+            
+            const bkpData = JSON.parse(JSON.stringify(historicoTarjas));
+            historicoTarjas = []; 
+            
             for (let i = 0; i < state.pagesData.length; i++) {
                 const p = state.pagesData[i], page = await state.pdfDoc.getPage(p.num);
                 p.viewport = page.getViewport({ scale: state.scale });
                 p.container.style.width = p.viewport.width + 'px'; p.container.style.height = p.viewport.height + 'px';
                 p.canvas.width = p.viewport.width; p.canvas.height = p.viewport.height;
                 await page.render({ canvasContext: p.ctx, viewport: p.viewport }).promise;
-                p.layer.innerHTML = ''; applyRegexResults(i); 
-                // Nota Técnica: Tarjas de busca customizada e manuais são perdidas no zoom por não estarem no state. 
-                // O ideal é definir o zoom antes de iniciar a busca customizada e os ajustes manuais.
+                p.layer.innerHTML = ''; 
+                
+                bkpData.filter(t => t.pagina - 1 === i).forEach(tarja => {
+                    const realX = tarja.nx * state.scale, realY = tarja.ny * state.scale, realW = tarja.nw * state.scale, realH = tarja.nh * state.scale;
+                    addTarjaFromImport(p.layer, realX, realY, realW, realH, tarja.type, i, tarja.termo, tarja.id, tarja);
+                });
             }
-            document.getElementById('sys-status-text').textContent = `Zoom ajustado para ${state.scale.toFixed(1)}x.`;
+            UI.sysStatusText.textContent = `Zoom ajustado para ${state.scale.toFixed(1)}x. Todas as tarjas foram preservadas.`;
         }
 
         UI.btnExport.onclick = async () => {
@@ -421,7 +664,7 @@
             const doc = new window.jspdf.jsPDF('p', 'pt', 'a4'), total = state.pagesData.length;
             for (let i = 0; i < total; i++) {
                 const p = state.pagesData[i];
-                document.getElementById('sys-status-text').textContent = `Rasterizando página ${i + 1} de ${total}...`;
+                UI.sysStatusText.textContent = `Rasterizando página ${i + 1} de ${total}...`;
                 document.getElementById('progress-bar').style.width = `${((i + 1) / total) * 100}%`;
                 await new Promise(r => setTimeout(r, 15)); 
                 p.layer.querySelectorAll('.tarja').forEach(t => {
@@ -432,8 +675,8 @@
                 if (i > 0) doc.addPage();
                 doc.addImage(img, 'JPEG', 0, 0, pw, ph);
             }
-            doc.save('ater_v14_anonimizado.pdf');
-            document.getElementById('sys-status-text').textContent = "Download concluído com sucesso.";
+            doc.save('documento_final_anonimizado.pdf');
+            UI.sysStatusText.textContent = "Download seguro concluído com sucesso.";
             setTimeout(() => { document.getElementById('progress-container').style.display = 'none'; document.getElementById('progress-bar').style.width = '0%'; }, 2000);
             setUIState(true);
         };
