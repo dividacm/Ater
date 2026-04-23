@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ater V10 - UX & Control Edition</title>
+    <title>Ater V10 - Raio-X Edition</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1e1e1e; margin: 0; display: flex; flex-direction: column; height: 100vh; color: #f0f0f0; overflow: hidden; }
@@ -73,19 +73,13 @@
         </label>
         
         <button id="btn-clear" class="btn" title="Limpar área de trabalho" disabled>🗑️ Limpar</button>
-        
         <div class="divider"></div>
-        
         <button id="btn-mode-view" class="btn active" disabled>🖱️ Navegar</button>
         <button id="btn-mode-draw" class="btn" disabled>✏️ Desenhar Tarja</button>
-        
         <div class="divider"></div>
-        
         <button id="btn-zoom-out" class="btn" disabled>Zoom -</button>
         <button id="btn-zoom-in" class="btn" disabled>Zoom +</button>
-
         <div class="divider"></div>
-        
         <button id="btn-cancel" class="btn btn-danger" style="display: none;">🛑 Cancelar IA</button>
         <button id="btn-export" class="btn btn-success" style="margin-left: auto;" disabled>💾 Exportar Seguro</button>
     </div>
@@ -136,7 +130,6 @@
             progContainer: document.getElementById('progress-container'), progBar: document.getElementById('progress-bar')
         };
 
-        // --- WEB WORKER (IA) ---
         let aiWorker = null;
 
         const workerCode = `
@@ -234,7 +227,6 @@
         
         spawnWorker();
 
-        // --- UI E EVENTOS ---
         function setUIState(enabled) {
             UI.btnView.disabled = !enabled; UI.btnDraw.disabled = !enabled;
             UI.btnZoomIn.disabled = !enabled; UI.btnZoomOut.disabled = !enabled;
@@ -318,6 +310,7 @@
             setupManualDrawing(layer);
         }
 
+        // --- MODO RAIO-X INSERIDO AQUI ---
         function processNextPage(index) {
             if (state.cancelRequested) return;
             if (index >= state.pagesData.length) {
@@ -327,12 +320,30 @@
             }
             const pageData = state.pagesData[index];
             UI.sysStatusText.textContent = `IA Analisando página ${index + 1} de ${state.pagesData.length}...`;
-            const fullText = pageData.textItems.map(i => i.str).join(' ');
+            
+            const fullText = pageData.textItems.map(i => i.str).join(' ').trim();
+            
+            // LOGS DO RAIO-X
+            console.warn(`--- RAIO-X: PÁGINA ${index + 1} ---`);
+            console.log("1. Total de caracteres extraídos do PDF:", fullText.length);
+            if(fullText.length < 10) {
+                console.error("ALERTA: Documento sem texto! Provavelmente é um PDF escaneado (imagem). A IA não tem o que ler.");
+            } else {
+                console.log("2. Texto enviado para a IA:", fullText.substring(0, 100) + "... (resumido)");
+            }
+
             aiWorker.postMessage({ type: 'analyze', text: fullText, pageIndex: index });
         }
 
         function applyHybridResults(pageIndex, aiNames) {
             const pageData = state.pagesData[pageIndex];
+            
+            // LOGS DO RAIO-X
+            console.log("3. Nomes identificados pela IA:", aiNames);
+            if(aiNames.length === 0) {
+                console.warn("Aviso: A IA leu o texto, mas não encontrou nenhum nome próprio com confiança suficiente nesta página.");
+            }
+
             pageData.textItems.forEach(item => {
                 const text = item.str;
                 if (!text.trim()) return;
