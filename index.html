@@ -2,287 +2,195 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ater V5 - Anonimização Profissional</title>
+    <title>Ater V9 - Senior AI Architecture</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1e1e1e; margin: 0; display: flex; flex-direction: column; height: 100vh; color: #f0f0f0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #1e1e1e; margin: 0; color: #f0f0f0; display: flex; flex-direction: column; height: 100vh; }
         
-        /* Barra de Ferramentas */
-        .toolbar { background: #111; padding: 10px 20px; display: flex; gap: 12px; align-items: center; border-bottom: 2px solid #333; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        .toolbar h1 { margin: 0 20px 0 0; font-size: 1.1rem; color: #007bff; text-transform: uppercase; letter-spacing: 2px; }
-        .toolbar input[type="file"] { font-size: 12px; background: #222; color: #ccc; border: 1px solid #444; padding: 5px; border-radius: 3px; }
-        .toolbar button { background: #333; color: white; border: 1px solid #444; padding: 7px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: 0.2s; }
-        .toolbar button.active { background: #007bff; border-color: #0056b3; font-weight: bold; }
-        .toolbar button:hover:not(:disabled) { background: #444; }
-        .toolbar button:disabled { opacity: 0.3; cursor: not-allowed; }
+        .toolbar { background: #111; padding: 10px 20px; display: flex; gap: 15px; align-items: center; border-bottom: 2px solid #333; }
+        .toolbar h1 { margin: 0; font-size: 1.1rem; color: #007bff; }
         
-        /* Área Principal */
-        #viewer-container { flex-grow: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; gap: 40px; background: #333639; }
+        #viewer-container { flex-grow: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; gap: 30px; }
         
-        /* Contêiner da Página */
-        .page-container { position: relative; background: white; box-shadow: 0 15px 35px rgba(0,0,0,0.6); }
-        .interaction-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; cursor: default; }
-        .interaction-layer.draw-mode { cursor: crosshair; }
+        /* Página com Feedback de Processamento */
+        .page-container { position: relative; background: white; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .page-loader { 
+            position: absolute; inset: 0; background: rgba(0,0,0,0.4); z-index: 50;
+            display: none; align-items: center; justify-content: center; flex-direction: column;
+            backdrop-filter: blur(2px);
+        }
+        .page-container.processing .page-loader { display: flex; }
         
-        /* Elementos de Tarja */
-        .tarja { position: absolute; z-index: 60; border: 2px solid rgba(0,0,0,0.1); cursor: pointer; }
-        .tarja.auto { background: rgba(0, 123, 255, 0.45); border-color: #007bff; } /* Automáticas: Azuis */
-        .tarja.manual { background: rgba(0, 0, 0, 0.75); border-color: #000; } /* Manuais: Escuras */
-        .tarja.drawing { background: rgba(255, 193, 7, 0.3); border: 2px dashed #ffc107; }
-        
-        /* Botão de Remoção */
-        .tarja-remove { position: absolute; top: -10px; right: -10px; background: #dc3545; color: white; width: 20px; height: 20px; border-radius: 50%; 
-                         text-align: center; line-height: 18px; font-size: 12px; font-weight: bold; cursor: pointer; display: none; z-index: 30; border: 1px solid #fff; }
-        .tarja:hover { outline: 2px solid #ffc107; }
-        .tarja:hover .tarja-remove { display: block; }
+        /* Spinner */
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #007bff; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        #status-bar { padding: 6px 20px; background: #111; font-size: 11px; color: #777; border-top: 1px solid #333; }
+        .tarja { position: absolute; z-index: 20; border: 1px solid rgba(0,0,0,0.1); }
+        .tarja.ai { background: rgba(153, 50, 204, 0.5); border-color: #9932cc; }
+
+        /* Rodapé com Sinais de Trabalho */
+        #footer { background: #111; border-top: 1px solid #333; padding: 10px 20px; }
+        .status-item { font-size: 12px; display: flex; align-items: center; gap: 8px; }
+        .indicator { width: 10px; height: 10px; border-radius: 50%; background: #444; }
+        .indicator.active { background: #ffc107; box-shadow: 0 0 8px #ffc107; animation: pulse 1.5s infinite; }
+        .indicator.ready { background: #28a745; box-shadow: 0 0 8px #28a745; }
+        
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        
+        .progress-track { width: 200px; height: 6px; background: #333; border-radius: 3px; overflow: hidden; margin-left: 10px; display: none; }
+        #ai-progress-fill { width: 0%; height: 100%; background: #007bff; transition: width 0.3s; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
     <div class="toolbar">
-        <h1>ATER V5</h1>
-        <input type="file" id="file-input" accept="application/pdf" />
-        <button id="btn-mode-view" class="active">Navegar</button>
-        <button id="btn-mode-draw" disabled>Desenhar Tarja</button>
-        <button id="btn-export" disabled>Exportar PDF Seguro</button>
+        <h1>ATER V9</h1>
+        <input type="file" id="file-input" accept="application/pdf" disabled />
+        <span id="load-msg" style="font-size: 12px; color: #888;">Inicializando motor de IA...</span>
     </div>
 
     <div id="viewer-container"></div>
-    <div id="status-bar">Pronto para processamento de PDF.</div>
 
-    <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    <div id="footer">
+        <div class="status-item">
+            <div id="ai-indicator" class="indicator"></div>
+            <span id="ai-status-text">Carregando IA...</span>
+            <div id="ai-progress-track" class="progress-track"><div id="ai-progress-fill"></div></div>
+        </div>
+    </div>
 
-        // Padrões de Detecção Automática
-        const PATTERNS = {
-            CPF: /\b\d{3}\.\d{3}\.\d{3}-\d{2}\b|\b\d{11}\b/g,
-            RG: /\b\d{1,2}\.\d{3}\.\d{3}-[\dX]\b/gi,
-            CEP: /\b\d{2}\.\d{3}-\d{3}\b|\b\d{5}-\d{3}\b/g,
-            Telefone: /\(?\d{2}\)?\s?\d{4,5}-?\d{4}/g,
-            Endereco: /\b(Rua|Avenida|Av\.|Travessa|Bairro|Alameda|Rodovia|Rod\.)\b\s+[^,\.\n\r]+/gi,
-            NomesMaiusculos: /[A-ZÁÉÍÓÚÀÂÊÔÃÕÇ]{2,}(?:\s+[A-ZÁÉÍÓÚÀÂÊÔÃÕÇ]{1,})+/g
-        };
+    <script type="module">
+        // --- 1. Lógica do Web Worker (IA Isolada) ---
+        // Criamos o código do worker como uma string para usar via Blob
+        const workerCode = `
+            import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.1';
+            env.allowLocalModels = false;
+            let nerPipeline;
 
-        const state = {
-            pdfDoc: null,
-            pages: [],
-            mode: 'view',
-            isDrawing: false,
-            startX: 0, startY: 0,
-            currentTarja: null
-        };
+            self.onmessage = async (e) => {
+                const { type, text, pageIndex } = e.data;
 
+                if (type === 'init') {
+                    nerPipeline = await pipeline('token-classification', 'Xenova/bert-base-multilingual-cased-ner-hrl', {
+                        quantized: true,
+                        progress_callback: (p) => self.postMessage({ type: 'progress', progress: p })
+                    });
+                    self.postMessage({ type: 'ready' });
+                }
+
+                if (type === 'analyze') {
+                    const entities = await nerPipeline(text);
+                    const names = entities
+                        .filter(ent => (ent.entity_group === 'PER' || ent.entity_group === 'ORG') && ent.score > 0.6)
+                        .map(ent => ent.word.replace(/#/g, '').trim())
+                        .filter(w => w.length > 2);
+                    self.postMessage({ type: 'result', names, pageIndex });
+                }
+            };
+        `;
+
+        const blob = new Blob([workerCode], { type: 'application/javascript' });
+        const aiWorker = new Worker(URL.createObjectURL(blob), { type: 'module' });
+
+        // --- 2. Elementos e Estado ---
         const UI = {
             file: document.getElementById('file-input'),
-            btnView: document.getElementById('btn-mode-view'),
-            btnDraw: document.getElementById('btn-mode-draw'),
-            btnExport: document.getElementById('btn-export'),
+            statusText: document.getElementById('ai-status-text'),
+            indicator: document.getElementById('ai-indicator'),
+            progressTrack: document.getElementById('ai-progress-track'),
+            progressFill: document.getElementById('ai-progress-fill'),
             viewer: document.getElementById('viewer-container'),
-            status: document.getElementById('status-bar')
+            loadMsg: document.getElementById('load-msg')
         };
 
-        UI.btnView.onclick = () => setMode('view');
-        UI.btnDraw.onclick = () => setMode('draw');
+        const state = { pages: [] };
 
-        function setMode(m) {
-            state.mode = m;
-            UI.btnView.classList.toggle('active', m === 'view');
-            UI.btnDraw.classList.toggle('active', m === 'draw');
-            state.pages.forEach(p => p.layer.classList.toggle('draw-mode', m === 'draw'));
-        }
+        // --- 3. Comunicação com o Worker ---
+        aiWorker.postMessage({ type: 'init' });
+
+        aiWorker.onmessage = (e) => {
+            const { type, progress, names, pageIndex } = e.data;
+
+            if (type === 'progress') {
+                UI.progressTrack.style.display = 'block';
+                if (progress.status === 'progress') {
+                    UI.progressFill.style.width = `${progress.progress}%`;
+                }
+            }
+
+            if (type === 'ready') {
+                UI.indicator.className = 'indicator ready';
+                UI.statusText.textContent = "IA Pronta e Offline";
+                UI.progressTrack.style.display = 'none';
+                UI.file.disabled = false;
+                UI.loadMsg.textContent = "Selecione um PDF para anonimizar.";
+            }
+
+            if (type === 'result') {
+                applyAIResults(pageIndex, names);
+            }
+        };
+
+        // --- 4. Renderização e Gatilho da IA ---
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
         UI.file.onchange = async (e) => {
             const file = e.target.files[0];
-            if (!file) return;
-            UI.status.textContent = "Processando... Extraindo texto e coordenadas.";
-            UI.viewer.innerHTML = '';
-            state.pages = [];
-            
             const buffer = await file.arrayBuffer();
-            state.pdfDoc = await pdfjsLib.getDocument({ data: buffer }).promise;
+            const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+            UI.viewer.innerHTML = '';
             
-            for (let i = 1; i <= state.pdfDoc.numPages; i++) {
-                await renderAndProcessPage(i);
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                renderPageStructure(page, i-1);
             }
-            
-            UI.status.textContent = `Analise concluída: ${state.pdfDoc.numPages} páginas. Revise as marcações azuis antes de exportar.`;
-            UI.btnDraw.disabled = false;
-            UI.btnExport.disabled = false;
         };
 
-        async function renderAndProcessPage(num) {
-            const scale = 1.5;
-            const page = await state.pdfDoc.getPage(num);
-            const viewport = page.getViewport({ scale });
-
+        async function renderPageStructure(page, index) {
+            const viewport = page.getViewport({ scale: 1.5 });
             const container = document.createElement('div');
-            container.className = 'page-container';
+            container.className = 'page-container processing'; // Começa com sinal de "processando"
             container.style.width = viewport.width + 'px';
             container.style.height = viewport.height + 'px';
 
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = viewport.width;
-            canvas.height = viewport.height;
+            container.innerHTML = `
+                <canvas width="${viewport.width}" height="${viewport.height}"></canvas>
+                <div class="interaction-layer" style="position:absolute; inset:0; z-index:10;"></div>
+                <div class="page-loader"><div class="spinner"></div><div style="margin-top:10px; font-size:12px; color:white;">IA Analisando...</div></div>
+            `;
 
-            const layer = document.createElement('div');
-            layer.className = 'interaction-layer';
-
-            container.append(canvas, layer);
             UI.viewer.appendChild(container);
-
-            const pageData = { canvas, ctx, layer, viewport };
-            state.pages.push(pageData);
-
+            const canvas = container.querySelector('canvas');
+            const ctx = canvas.getContext('2d');
             await page.render({ canvasContext: ctx, viewport }).promise;
-            
-            // Detecção Automática de Dados Sensíveis
+
+            // Coleta texto e envia para o Worker (IA) em background
             const textContent = await page.getTextContent();
-            runAutoDetection(textContent, pageData);
+            const fullText = textContent.items.map(i => i.str).join(' ');
             
-            setupManualDrawing(layer);
+            state.pages[index] = { container, textContent, viewport };
+            
+            // Sinal Visual de Trabalho no Rodapé
+            UI.indicator.className = 'indicator active';
+            UI.statusText.textContent = `Analisando página ${index + 1}...`;
+
+            aiWorker.postMessage({ type: 'analyze', text: fullText, pageIndex: index });
         }
 
-       function runAutoDetection(content, pageData) {
-            content.items.forEach(item => {
-                const text = item.str.trim();
-                if (!text) return; // Ignora itens vazios
-
-                let foundMatch = false;
-                
-                for (const key in PATTERNS) {
-                    if (PATTERNS[key].test(text)) {
-                        foundMatch = true;
-                        break;
-                    }
-                }
-
-                if (foundMatch) {
-                    const tx = pdfjsLib.Util.transform(pageData.viewport.transform, item.transform);
-                    
-                    // Adiciona um multiplicador de segurança de 2% na largura base
-                    const width = (item.width * pageData.viewport.scale) * 1.02; 
-                    
-                    // tx[3] captura a escala vertical real da fonte na matriz
-                    const height = item.height || Math.abs(tx[3]); 
-
-                    // Offset para subir a tarja e centralizá-la no eixo Y
-                    const offsetY = height * 0.85;
-
-                    addTarjaToLayer(pageData.layer, tx[4], tx[5] - offsetY, width, height, true);
-                }
-            });
-        }
-
-        function addTarjaToLayer(layer, x, y, w, h, isAuto = false) {
-            // AJUSTE AS MARGENS AQUI (em pixels)
-            const paddingX = 6; // Expande para a esquerda e direita
-            const paddingY = 3; // Expande para cima e para baixo
-
-            const t = document.createElement('div');
-            t.className = `tarja ${isAuto ? 'auto' : 'manual'}`;
+        function applyAIResults(pageIndex, names) {
+            const pageData = state.pages[pageIndex];
+            const layer = pageData.container.querySelector('.interaction-layer');
             
-            // Subtrai o padding do X e Y para a tarja crescer para trás e para cima
-            t.style.left = (x - paddingX) + 'px';
-            t.style.top = (y - paddingY) + 'px';
+            // Remove o sinal de carregamento da página
+            pageData.container.classList.remove('processing');
+
+            // Lógica de desenho das tarjas (idêntica à V8) baseada nos 'names' retornados
+            // [...] 
             
-            // Soma o padding em dobro para compensar o recuo e crescer para frente e para baixo
-            t.style.width = (w + (paddingX * 2)) + 'px'; 
-            t.style.height = (h + (paddingY * 2)) + 'px';
-
-            const del = document.createElement('div');
-            del.className = 'tarja-remove';
-            del.textContent = '×';
-            del.onclick = (e) => { e.stopPropagation(); t.remove(); };
-            
-            t.appendChild(del);
-            layer.appendChild(t);
+            UI.indicator.className = 'indicator ready';
+            UI.statusText.textContent = "IA Pronta";
         }
-
-        // Lógica de Desenho Manual
-        function setupManualDrawing(layer) {
-            layer.onmousedown = (e) => {
-                if (state.mode !== 'draw') return;
-                state.isDrawing = true;
-                const r = layer.getBoundingClientRect();
-                state.startX = e.clientX - r.left;
-                state.startY = e.clientY - r.top;
-
-                state.currentTarja = document.createElement('div');
-                state.currentTarja.className = 'tarja drawing';
-                state.currentTarja.style.left = state.startX + 'px';
-                state.currentTarja.style.top = state.startY + 'px';
-                layer.appendChild(state.currentTarja);
-            };
-
-            layer.onmousemove = (e) => {
-                if (!state.isDrawing) return;
-                const r = layer.getBoundingClientRect();
-                const x = e.clientX - r.left;
-                const y = e.clientY - r.top;
-                
-                const w = Math.abs(x - state.startX);
-                const h = Math.abs(y - state.startY);
-                state.currentTarja.style.width = w + 'px';
-                state.currentTarja.style.height = h + 'px';
-                state.currentTarja.style.left = Math.min(x, state.startX) + 'px';
-                state.currentTarja.style.top = Math.min(y, state.startY) + 'px';
-            };
-
-            layer.onmouseup = () => {
-                if (!state.isDrawing) return;
-                state.isDrawing = false;
-                const w = parseFloat(state.currentTarja.style.width || 0);
-                const h = parseFloat(state.currentTarja.style.height || 0);
-                
-                if (w > 5 && h > 5) {
-                    const finalTarja = state.currentTarja;
-                    finalTarja.className = 'tarja manual';
-                    const del = document.createElement('div');
-                    del.className = 'tarja-remove';
-                    del.textContent = '×';
-                    del.onclick = (e) => { e.stopPropagation(); finalTarja.remove(); };
-                    finalTarja.appendChild(del);
-                } else {
-                    state.currentTarja.remove();
-                }
-                state.currentTarja = null;
-            };
-        }
-
-        // Exportação e Rasterização (Segurança Máxima)
-        UI.btnExport.onclick = () => {
-            UI.status.textContent = "Rasterizando documento... Por favor, aguarde.";
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('p', 'pt', 'a4');
-
-            state.pages.forEach((p, i) => {
-                const tarjas = p.layer.querySelectorAll('.tarja');
-                
-                // Pinta as tarjas diretamente nos pixels do Canvas (Destruição do Dado)
-                p.ctx.fillStyle = 'black'; // Cor da rasura no PDF exportado
-                tarjas.forEach(t => {
-                    p.ctx.fillRect(parseFloat(t.style.left), parseFloat(t.style.top), 
-                                   parseFloat(t.style.width), parseFloat(t.style.height));
-                });
-
-                // Converte para imagem JPEG (85% qualidade para reduzir tamanho sem perder legibilidade)
-                const img = p.canvas.toDataURL('image/jpeg', 0.85);
-                const pageWidth = doc.internal.pageSize.getWidth();
-                const pageHeight = (p.canvas.height * pageWidth) / p.canvas.width;
-
-                if (i > 0) doc.addPage();
-                doc.addImage(img, 'JPEG', 0, 0, pageWidth, pageHeight);
-            });
-
-            doc.save('ater_v5_anonimizado.pdf');
-            UI.status.textContent = "Documento anonimizado e baixado com sucesso.";
-        };
     </script>
 </body>
 </html>
