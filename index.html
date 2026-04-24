@@ -3,766 +3,1808 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ater - Anonimização de documentos</title>
+    <title>Ater — Anonimização de Documentos</title>
     <style>
-        /* --- VARIÁVEIS DE TEMA --- */
+        /* =========================================================
+           VARIÁVEIS DE TEMA
+        ========================================================= */
         :root {
-            --bg-body: #1e1e1e;
-            --bg-toolbar: #111111;
-            --bg-panel: #2d2d2d;
-            --bg-sidebar: #1a1a1a;
-            --bg-item: #2a2a2a;
-            --text-main: #f0f0f0;
-            --text-muted: #aaaaaa;
-            --border: #333333;
+            --bg-body:    #1a1a1f;
+            --bg-toolbar: #111116;
+            --bg-panel:   #26262e;
+            --bg-sidebar: #18181e;
+            --bg-item:    #2a2a33;
+            --text-main:  #e8e8f0;
+            --text-muted: #888899;
+            --border:     #35353f;
+            --accent:     #4f8ef7;
+            --accent-2:   #f7954f;
         }
-
         [data-theme="claro"] {
-            --bg-body: #f4f4f9;
+            --bg-body:    #f0f0f7;
             --bg-toolbar: #ffffff;
-            --bg-panel: #e0e0e0;
-            --bg-sidebar: #f8f9fa;
-            --bg-item: #ffffff;
-            --text-main: #222222;
-            --text-muted: #666666;
-            --border: #cccccc;
+            --bg-panel:   #e0e0ea;
+            --bg-sidebar: #f6f6fc;
+            --bg-item:    #ffffff;
+            --text-main:  #1a1a2e;
+            --text-muted: #666677;
+            --border:     #d0d0df;
         }
-
         [data-theme="sepia"] {
-            --bg-body: #f4ecd8;
-            --bg-toolbar: #e4d9c0;
-            --bg-panel: #d5c8a0;
-            --bg-sidebar: #eee8d5;
-            --bg-item: #fdf6e3;
-            --text-main: #4a4036;
-            --text-muted: #7a6e60;
-            --border: #d0c5a8;
+            --bg-body:    #f4ecd8;
+            --bg-toolbar: #e8dcc5;
+            --bg-panel:   #ddd0b0;
+            --bg-sidebar: #f0e8d0;
+            --bg-item:    #fdf6e3;
+            --text-main:  #3a3028;
+            --text-muted: #7a6a58;
+            --border:     #c8b898;
+        }
+        [data-theme="alto-contraste"] {
+            --bg-body:    #000000;
+            --bg-toolbar: #000000;
+            --bg-panel:   #111111;
+            --bg-sidebar: #000000;
+            --bg-item:    #1a1a1a;
+            --text-main:  #ffffff;
+            --text-muted: #cccccc;
+            --border:     #555555;
+            --accent:     #ffff00;
+            --accent-2:   #ff8800;
         }
 
-        [data-theme="verde-amarelo"] {
-            --bg-body: #009c3b; /* Verde Bandeira */
-            --bg-toolbar: #009c3b; /* Azul Bandeira */
-            --bg-panel: #e6c800; /* Fundo mais escuro para destacar o branco do PDF */
-            --bg-sidebar: #008532;
-            --bg-item: #ffdf00; /* Amarelo Bandeira */
-            --text-main: #002776;
-            --text-muted: #e0e0e0;
-            --border: #002776;
+        /* =========================================================
+           RESET & BASE
+        ========================================================= */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-body);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            transition: background 0.3s, color 0.3s;
         }
 
-        /* --- ESTILOS GERAIS --- */
-        * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-body); margin: 0; display: flex; flex-direction: column; height: 100vh; color: var(--text-main); overflow: hidden; transition: background 0.3s, color 0.3s; }
-        
-        .toolbar { background: var(--bg-toolbar); padding: 10px 20px; display: flex; gap: 8px; align-items: center; border-bottom: 1px solid var(--border); z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.5); flex-wrap: wrap; flex-shrink: 0; transition: background 0.3s; }
-        .toolbar h1 { margin: 0 10px 0 0; font-size: 1.1rem; color: #007bff; letter-spacing: 1px; }
-        
-        .btn { background: var(--bg-item); color: var(--text-main); border: 1px solid var(--border); padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
-        .btn:hover:not(:disabled) { filter: brightness(1.2); }
-        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .btn.active { background: #007bff; border-color: #0056b3; font-weight: bold; color: white; }
-        
-        /* Cores fixas para botões de ação */
-        .btn-danger { background: #dc3545; border-color: #c82333; color: white; }
-        .btn-danger:hover:not(:disabled) { background: #c82333; filter: none; }
-        .btn-success { background: #28a745; border-color: #218838; color: white; }
-        .btn-info { background: #17a2b8; border-color: #117a8b; color: white; }
-        .btn-warning { background: #ff9800; border-color: #e68a00; color: #111; font-weight: bold; }
-        
-        .divider { width: 1px; height: 24px; background: var(--border); margin: 0 2px; }
-        
+        /* =========================================================
+           TOOLBAR
+        ========================================================= */
+        .toolbar {
+            background: var(--bg-toolbar);
+            padding: 8px 16px;
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            z-index: 100;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+            flex-wrap: wrap;
+            flex-shrink: 0;
+        }
+        .toolbar-brand {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: 2px;
+            margin-right: 8px;
+            white-space: nowrap;
+        }
+        .toolbar-brand span {
+            font-size: 0.65rem;
+            opacity: 0.6;
+            font-weight: 400;
+            letter-spacing: 0;
+            display: block;
+            line-height: 1;
+        }
+
+        .btn {
+            background: var(--bg-item);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 11.5px;
+            transition: filter 0.15s, background 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+            line-height: 1.4;
+        }
+        .btn:hover:not(:disabled) { filter: brightness(1.25); }
+        .btn:active:not(:disabled) { filter: brightness(0.9); }
+        .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+        .btn.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+        .btn-danger  { background: #c0392b; border-color: #962d22; color: #fff; }
+        .btn-success { background: #27ae60; border-color: #1e8449; color: #fff; }
+        .btn-info    { background: #2471a3; border-color: #1a5276; color: #fff; }
+        .btn-warn    { background: #d68910; border-color: #b7770d; color: #fff; font-weight: 600; }
+
         input[type="file"] { display: none; }
-        .file-label { background: var(--bg-item); color: var(--text-main); border: 1px solid var(--border); padding: 6px 10px; border-radius: 3px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 5px; transition: 0.2s; }
-        .file-label:hover { filter: brightness(1.2); }
-        .file-label.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+        .file-label {
+            background: var(--bg-item);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 11.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: filter 0.15s;
+            white-space: nowrap;
+        }
+        .file-label:hover { filter: brightness(1.25); }
+        .file-label.disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
 
-        .search-group { display: flex; gap: 5px; margin-left: 2px; }
-        .search-group input { background: var(--bg-item); border: 1px solid var(--border); color: var(--text-main); padding: 6px 10px; border-radius: 4px; font-size: 12px; outline: none; width: 120px; transition: 0.2s; }
-        .search-group input:focus { border-color: #ff9800; }
-        .search-group input:disabled { opacity: 0.4; cursor: not-allowed; }
+        .divider { width: 1px; height: 22px; background: var(--border); margin: 0 2px; flex-shrink: 0; }
 
-        .tema-seletor { background: var(--bg-item); color: var(--text-main); border: 1px solid var(--border); border-radius: 4px; padding: 5px; font-size: 12px; outline: none; cursor: pointer; }
+        .search-group { display: flex; gap: 4px; }
+        .search-group input {
+            background: var(--bg-item);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 11.5px;
+            outline: none;
+            width: 140px;
+        }
+        .search-group input:focus { border-color: var(--accent); }
+        .search-group input:disabled { opacity: 0.35; cursor: not-allowed; }
 
-        .main-wrapper { display: flex; flex-grow: 1; overflow: hidden; position: relative; }
-        #viewer-container { flex-grow: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; gap: 40px; background: var(--bg-panel); position: relative; transition: background 0.3s; }
-        
-        /* Sidebar Histórico */
-        #sidebar-historico { width: 300px; min-width: 300px; background: var(--bg-sidebar); border-left: 1px solid var(--border); display: flex; flex-direction: column; z-index: 90; transition: background 0.3s; }
-        .sidebar-header { padding: 12px 15px; background: var(--bg-toolbar); border-bottom: 1px solid var(--border); font-weight: bold; color: #007bff; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
-        .badge-count { background: var(--bg-item); color: var(--text-main); padding: 2px 8px; border-radius: 10px; font-size: 11px; border: 1px solid var(--border); }
-        #historico-list { flex-grow: 1; overflow-y: auto; padding: 15px 10px; display: flex; flex-direction: column; gap: 15px; }
-        
-        .page-group-header { font-size: 12px; color: var(--text-muted); border-bottom: 1px solid var(--border); padding-bottom: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; }
-        .historico-item { background: var(--bg-item); border-radius: 4px; padding: 8px; font-size: 11px; position: relative; border-left: 3px solid #555; display: flex; flex-direction: column; gap: 4px; margin-bottom: 5px; color: var(--text-main); border: 1px solid var(--border); border-left-width: 3px; }
-        .historico-item.regex { border-left-color: #007bff; }
-        .historico-item.custom { border-left-color: #ff9800; }
-        .historico-item.manual { border-left-color: #888; }
-        .historico-empty { text-align: center; color: var(--text-muted); font-style: italic; padding: 20px; font-size: 12px; }
-        .hist-remove { position: absolute; top: 50%; transform: translateY(-50%); right: 5px; color: var(--text-muted); cursor: pointer; font-size: 20px; line-height: 1; padding: 5px; }
-        .hist-remove:hover { color: #dc3545; }
+        select.tema-seletor {
+            background: var(--bg-item);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            padding: 5px 6px;
+            font-size: 11.5px;
+            cursor: pointer;
+            outline: none;
+        }
 
-        .page-container { position: relative; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.8); transition: transform 0.2s; }
-        .interaction-layer { position: absolute; inset: 0; z-index: 10; cursor: default; }
+        /* =========================================================
+           LAYOUT PRINCIPAL
+        ========================================================= */
+        .main-wrapper {
+            display: flex;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        #viewer-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 36px;
+            background: var(--bg-panel);
+            scroll-behavior: smooth;
+        }
+
+        /* =========================================================
+           SIDEBAR
+        ========================================================= */
+        #sidebar {
+            width: 290px;
+            min-width: 290px;
+            background: var(--bg-sidebar);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 90;
+        }
+        .sidebar-header {
+            padding: 11px 14px;
+            background: var(--bg-toolbar);
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            color: var(--accent);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+        .badge-count {
+            background: var(--bg-item);
+            color: var(--text-main);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            border: 1px solid var(--border);
+        }
+        #historico-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 12px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .page-group-header {
+            font-size: 11px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 4px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .historico-item {
+            background: var(--bg-item);
+            border-radius: 5px;
+            padding: 7px 10px;
+            font-size: 11px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            border-left-width: 3px;
+            margin-bottom: 4px;
+        }
+        .historico-item.regex  { border-left-color: var(--accent); }
+        .historico-item.custom { border-left-color: var(--accent-2); }
+        .historico-item.manual { border-left-color: #666; }
+        .historico-empty {
+            text-align: center;
+            color: var(--text-muted);
+            font-style: italic;
+            padding: 24px 16px;
+            font-size: 12px;
+        }
+        .hist-remove {
+            position: absolute;
+            top: 50%; right: 5px;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+            padding: 5px;
+            border: none;
+            background: none;
+        }
+        .hist-remove:hover { color: #e74c3c; }
+
+        /* =========================================================
+           PÁGINAS DO PDF
+        ========================================================= */
+        .page-wrapper { position: relative; }
+        .page-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
+            padding-bottom: 6px;
+        }
+        .page-container {
+            position: relative;
+            background: #fff;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+        }
+        .interaction-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 10;
+            cursor: default;
+        }
         .interaction-layer.draw-mode { cursor: crosshair; }
-        
-        .page-loader { position: absolute; inset: 0; background: rgba(0,0,0,0.5); z-index: 50; display: none; align-items: center; justify-content: center; flex-direction: column; backdrop-filter: blur(2px); }
-        .page-container.processing .page-loader { display: flex; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #007bff; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .tarja { position: absolute; z-index: 20; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; border-radius: 2px; }
-        .tarja.regex { background: rgba(0, 123, 255, 0.45); border-color: #007bff; } 
-        .tarja.custom { background: rgba(255, 152, 0, 0.45); border-color: #ff9800; } 
-        .tarja.manual { background: rgba(0, 0, 0, 0.75); border-color: #000; } 
-        .tarja.drawing { background: rgba(255, 193, 7, 0.3); border: 2px dashed #ffc107; }
-        
-        .tarja-remove { position: absolute; top: -12px; right: -12px; background: #dc3545; color: white; width: 24px; height: 24px; border-radius: 50%; text-align: center; line-height: 22px; font-size: 18px; font-weight: bold; cursor: pointer; display: none; z-index: 30; box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-        .tarja:hover { outline: 2px solid #ffc107; z-index: 25; }
+        .page-loader {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 50;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 12px;
+            backdrop-filter: blur(2px);
+        }
+        .page-container.processing .page-loader { display: flex; }
+        .spinner {
+            width: 36px; height: 36px;
+            border: 3px solid rgba(255,255,255,0.2);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader-text { color: #fff; font-size: 11px; opacity: 0.8; }
+
+        /* =========================================================
+           TARJAS
+        ========================================================= */
+        .tarja {
+            position: absolute;
+            z-index: 20;
+            cursor: pointer;
+            border-radius: 2px;
+            border: none;
+        }
+        .tarja.regex  { background: rgba(79, 142, 247, 0.42); }
+        .tarja.custom { background: rgba(247, 149, 79, 0.42); }
+        .tarja.manual { background: rgba(0,0,0,0.78); }
+        .tarja.drawing { background: rgba(255,220,50,0.25); border: 2px dashed #f1c40f; }
+
+        .tarja-remove {
+            position: absolute;
+            top: -12px; right: -12px;
+            background: #e74c3c;
+            color: #fff;
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: none;
+            z-index: 30;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+            border: none;
+            outline: none;
+        }
+        .tarja:hover { outline: 2px solid #f1c40f; z-index: 25; }
         .tarja:hover .tarja-remove { display: block; }
 
-        #footer { background: var(--bg-toolbar); border-top: 1px solid var(--border); display: flex; flex-direction: column; z-index: 100; flex-shrink: 0; }
-        #progress-container { width: 100%; height: 4px; background: var(--bg-item); display: none; }
-        #progress-bar { width: 0%; height: 100%; background: #007bff; transition: width 0.2s; }
-        .status-panel { padding: 8px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-muted); }
+        /* =========================================================
+           FOOTER / PROGRESS
+        ========================================================= */
+        #footer {
+            background: var(--bg-toolbar);
+            border-top: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            flex-shrink: 0;
+        }
+        #progress-container { width: 100%; height: 3px; background: var(--bg-item); display: none; }
+        #progress-bar { width: 0%; height: 100%; background: var(--accent); transition: width 0.2s; }
+        .status-panel {
+            padding: 7px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .status-panel .page-info { color: var(--text-muted); }
 
-        #drag-overlay { position: fixed; inset: 0; background: rgba(0, 123, 255, 0.15); z-index: 9999; display: none; align-items: center; justify-content: center; flex-direction: column; backdrop-filter: blur(3px); pointer-events: none; }
-        #drag-overlay .box { border: 4px dashed #007bff; border-radius: 20px; padding: 50px 100px; text-align: center; background: rgba(30, 30, 30, 0.9); box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
-        #drag-overlay h2 { color: #007bff; margin: 0 0 10px 0; font-size: 2rem; }
+        /* =========================================================
+           DRAG OVERLAY
+        ========================================================= */
+        #drag-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(79,142,247,0.12);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+            pointer-events: none;
+        }
+        #drag-overlay .box {
+            border: 3px dashed var(--accent);
+            border-radius: 16px;
+            padding: 48px 80px;
+            text-align: center;
+            background: rgba(10,10,20,0.85);
+        }
+        #drag-overlay h2 { color: var(--accent); font-size: 1.8rem; margin-bottom: 8px; }
+        #drag-overlay p { color: var(--text-muted); font-size: 13px; }
 
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 10000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
-        .modal-content { background: var(--bg-sidebar); border: 1px solid var(--border); border-radius: 8px; width: 500px; max-width: 90%; padding: 25px; box-shadow: 0 15px 40px rgba(0,0,0,0.7); display: flex; flex-direction: column; gap: 15px; color: var(--text-main); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-        .modal-header h2 { margin: 0; font-size: 1.2rem; color: #007bff; }
-        .btn-close { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
-        .btn-close:hover { color: #dc3545; }
-        
-        .input-group { display: flex; gap: 10px; }
-        .input-group input { flex-grow: 1; background: var(--bg-item); border: 1px solid var(--border); color: var(--text-main); padding: 8px 12px; border-radius: 4px; outline: none; font-size: 14px; }
-        .input-group input:focus { border-color: #007bff; }
-        .chip-container { display: flex; flex-wrap: wrap; gap: 8px; max-height: 250px; overflow-y: auto; padding: 10px 0; align-content: flex-start; }
-        .chip { background: var(--bg-item); border: 1px solid var(--border); padding: 4px 10px; border-radius: 15px; font-size: 11px; display: flex; align-items: center; gap: 8px; color: var(--text-main); }
-        .chip-remove { cursor: pointer; color: #dc3545; font-weight: bold; }
+        /* =========================================================
+           MODAIS
+        ========================================================= */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.72);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(3px);
+        }
+        .modal.open { display: flex; }
+        .modal-content {
+            background: var(--bg-sidebar);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            width: 520px;
+            max-width: 92vw;
+            max-height: 85vh;
+            padding: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+        .modal-header h2 { font-size: 1.1rem; color: var(--accent); }
+        .btn-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .btn-close:hover { color: #e74c3c; background: rgba(231,76,60,0.1); }
+        .modal p.hint { font-size: 11.5px; color: var(--text-muted); }
+
+        .input-group { display: flex; gap: 8px; }
+        .input-group input {
+            flex-grow: 1;
+            background: var(--bg-item);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 7px 12px;
+            border-radius: 5px;
+            outline: none;
+            font-size: 13px;
+        }
+        .input-group input:focus { border-color: var(--accent); }
+
+        .chip-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            max-height: 220px;
+            overflow-y: auto;
+            padding: 6px 0;
+        }
+        .chip {
+            background: var(--bg-item);
+            border: 1px solid var(--border);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-main);
+        }
+        .chip-remove {
+            cursor: pointer;
+            color: #e74c3c;
+            font-weight: bold;
+            background: none;
+            border: none;
+            font-size: 13px;
+            line-height: 1;
+            padding: 0;
+        }
         .chip-remove:hover { color: #ff6b6b; }
-        
-        #welcome-msg { text-align: center; margin-top: 100px; color: var(--text-muted); max-width: 500px; }
-        #welcome-msg .instrucoes-box { text-align: left; background: var(--bg-item); padding: 15px; border-radius: 8px; margin-top: 20px; font-size: 13px; border: 1px solid var(--border); }
+
+        /* =========================================================
+           WELCOME
+        ========================================================= */
+        #welcome-msg {
+            text-align: center;
+            margin-top: 80px;
+            color: var(--text-muted);
+            max-width: 520px;
+        }
+        #welcome-msg h2 { color: var(--text-main); margin-bottom: 10px; font-size: 1.4rem; }
+        .instrucoes-box {
+            text-align: left;
+            background: var(--bg-item);
+            padding: 16px 18px;
+            border-radius: 8px;
+            margin-top: 18px;
+            font-size: 12px;
+            border: 1px solid var(--border);
+            line-height: 1.7;
+        }
+        .instrucoes-box .titulo { color: var(--accent); font-weight: 600; margin-bottom: 8px; }
+        .instrucoes-box ol { padding-left: 18px; color: var(--text-muted); }
+        .instrucoes-box li { margin-bottom: 4px; }
+
+        /* =========================================================
+           TOAST
+        ========================================================= */
+        #toast-container {
+            position: fixed;
+            bottom: 48px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+            pointer-events: none;
+        }
+        .toast {
+            background: var(--bg-item);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 9px 18px;
+            border-radius: 20px;
+            font-size: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+            animation: toastIn 0.25s ease, toastOut 0.3s ease 2.7s forwards;
+            max-width: 480px;
+            text-align: center;
+        }
+        .toast.error { border-color: #e74c3c; color: #e74c3c; }
+        .toast.success { border-color: #27ae60; color: #2ecc71; }
+        @keyframes toastIn  { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+        @keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
+
+        /* =========================================================
+           ATALHOS — legenda
+        ========================================================= */
+        .kbd {
+            display: inline-block;
+            background: var(--bg-item);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            padding: 1px 5px;
+            font-size: 10px;
+            font-family: monospace;
+            color: var(--text-muted);
+        }
     </style>
+
+    <!-- PDF.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- pdf-lib: para exportação segura (sem JPEG) -->
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 </head>
 <body>
 
-    <div id="drag-overlay"><div class="box"><h2>Solte o PDF Aqui</h2></div></div>
+<!-- ============================================================
+     DRAG OVERLAY
+============================================================ -->
+<div id="drag-overlay">
+    <div class="box">
+        <h2>Solte o PDF aqui</h2>
+        <p>Arquivo PDF original</p>
+    </div>
+</div>
 
-    <div id="modal-excecoes" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>⚙️ Dicionário de Exceções</h2>
-                <button class="btn-close" onclick="document.getElementById('modal-excecoes').style.display = 'none'">×</button>
+<!-- ============================================================
+     MODAL: EXCEÇÕES
+============================================================ -->
+<div id="modal-excecoes" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-excecoes-titulo">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modal-excecoes-titulo">⚙️ Dicionário de Exceções</h2>
+            <button class="btn-close" id="btn-fechar-excecoes" title="Fechar" aria-label="Fechar">×</button>
+        </div>
+        <p class="hint">Termos nesta lista são ignorados pelas tarjas automáticas de nomes.</p>
+        <div class="input-group">
+            <input type="text" id="input-termo" placeholder="Ex: SECRETARIA, PREFEITURA" autocomplete="off" aria-label="Novo termo de exceção">
+            <button class="btn btn-success" id="btn-add-termo">Adicionar</button>
+        </div>
+        <div class="chip-container" id="chip-container" aria-label="Termos de exceção"></div>
+    </div>
+</div>
+
+<!-- ============================================================
+     MODAL: ATALHOS
+============================================================ -->
+<div id="modal-atalhos" class="modal" role="dialog" aria-modal="true">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+            <h2>⌨️ Atalhos de Teclado</h2>
+            <button class="btn-close" id="btn-fechar-atalhos" aria-label="Fechar">×</button>
+        </div>
+        <table style="width:100%; border-collapse:collapse; font-size:12px; color: var(--text-muted);">
+            <tbody id="atalhos-tbody"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ============================================================
+     TOOLBAR
+============================================================ -->
+<div class="toolbar" role="toolbar">
+    <div class="toolbar-brand">ATER <span>V20</span></div>
+
+    <label class="file-label" id="lbl-file" title="Abrir PDF (Ctrl+O)">
+        📂 Abrir PDF
+        <input type="file" id="file-input" accept="application/pdf">
+    </label>
+    <button id="btn-clear-doc" class="btn" title="Fechar documento" disabled>🗑️ Fechar</button>
+
+    <div class="divider"></div>
+
+    <label class="file-label btn-info disabled" id="lbl-import" title="Importar projeto .ater">
+        📥 Importar .ater
+        <input type="file" id="file-import" accept=".ater,.json" disabled>
+    </label>
+    <button id="btn-export-projeto" class="btn btn-info" title="Salvar projeto (Ctrl+S)" disabled>📤 Salvar Projeto</button>
+    <button id="btn-clear-tarjas" class="btn" title="Remover todas as tarjas (Ctrl+Del)" disabled>🧹 Limpar Tudo</button>
+
+    <div class="divider"></div>
+
+    <button id="btn-mode-view" class="btn active" title="Modo Visualização (V)" disabled>🖱️ Ver</button>
+    <button id="btn-mode-draw" class="btn" title="Modo Desenho (D)" disabled>✏️ Desenhar</button>
+    <button id="btn-undo" class="btn" title="Desfazer última tarja (Ctrl+Z)" disabled>↩️ Desfazer</button>
+    <button id="btn-zoom-out" class="btn" title="Zoom menos (-)" disabled>🔍−</button>
+    <button id="btn-zoom-in"  class="btn" title="Zoom mais (+)" disabled>🔍+</button>
+    <button id="btn-excecoes" class="btn" title="Dicionário de exceções">⚙️ Exceções</button>
+    <button id="btn-atalhos" class="btn" title="Ver atalhos de teclado">⌨️</button>
+
+    <div class="divider"></div>
+
+    <div class="search-group">
+        <input type="text" id="input-search" placeholder="Buscar e tarjar..." autocomplete="off" disabled aria-label="Buscar e tarjar texto">
+        <button id="btn-search" class="btn btn-warn" title="Buscar (Enter)" disabled>🔍 Buscar</button>
+    </div>
+
+    <div class="divider" style="margin-left: auto;"></div>
+
+    <select id="tema-seletor" class="tema-seletor" title="Tema visual" aria-label="Tema visual">
+        <option value="escuro">Escuro</option>
+        <option value="claro">Claro</option>
+        <option value="sepia">Sépia</option>
+        <option value="alto-contraste">Alto Contraste</option>
+    </select>
+
+    <div class="divider"></div>
+
+    <button id="btn-cancel" class="btn btn-danger" style="display:none;" title="Cancelar processamento">🛑 Cancelar</button>
+    <button id="btn-export" class="btn btn-success" title="Exportar PDF anonimizado (Ctrl+E)" disabled>💾 Exportar PDF</button>
+</div>
+
+<!-- ============================================================
+     CONTEÚDO PRINCIPAL
+============================================================ -->
+<div class="main-wrapper">
+    <div id="viewer-container" tabindex="0" aria-label="Visualizador de documento">
+        <div id="welcome-msg">
+            <h2>Ater V20 — Anonimização Segura</h2>
+            <p>Arraste um PDF aqui ou clique em <strong>Abrir PDF</strong> para começar.</p>
+            <div class="instrucoes-box">
+                <div class="titulo">Como funciona a Revisão em Dupla?</div>
+                <ol>
+                    <li>O Analista processa o PDF e clica em <strong>Salvar Projeto</strong>.</li>
+                    <li>Envia o PDF original + o arquivo <code>.ater</code> gerado ao Revisor.</li>
+                    <li>O Revisor abre o PDF original e importa o <code>.ater</code>.</li>
+                    <li>As marcações reaparecem para conferência.</li>
+                    <li>Clique em <strong>Exportar PDF</strong> para gerar o documento final anonimizado.</li>
+                </ol>
             </div>
-            <p style="font-size: 12px; color: var(--text-muted); margin: 0;">Palavras nesta lista serão ignoradas pelas tarjas automáticas.</p>
-            <div class="input-group">
-                <input type="text" id="input-termo" placeholder="Digite uma palavra (ex: SECRETARIA)" autocomplete="off">
-                <button class="btn btn-success" id="btn-add-termo">Adicionar</button>
-            </div>
-            <div class="chip-container" id="chip-container"></div>
         </div>
     </div>
 
-    <div class="toolbar">
-        <h1>ATER V19</h1>
-        
-        <label class="file-label" id="lbl-file" title="Abra o PDF Original primeiro">1. Abrir PDF <input type="file" id="file-input" accept="application/pdf" /></label>
-        <button id="btn-clear-doc" class="btn" title="Descarregar PDF" disabled>🗑️ Fechar</button>
-        
-        <div class="divider"></div>
-
-        <label class="file-label btn-info disabled" id="lbl-import-rascunho" title="Importar marcações de outro servidor">📥 Importar .ater <input type="file" id="file-import" accept=".ater,.json" disabled/></label>
-        <button id="btn-export-rascunho" class="btn btn-info" title="Salva os metadados para envio ao Revisor" disabled>📤 Salvar Projeto</button>
-        <button id="btn-clear-tarjas" class="btn" title="Remover todas as marcações da tela" disabled>🧹 Limpar Tudo</button>
-
-        <div class="divider"></div>
-
-        <button id="btn-mode-view" class="btn active" disabled>🖱️</button>
-        <button id="btn-mode-draw" class="btn" disabled>✏️ Desenhar</button>
-        <button id="btn-zoom-out" class="btn" disabled>Zoom -</button>
-        <button id="btn-zoom-in" class="btn" disabled>Zoom +</button>
-        <button id="btn-excecoes" class="btn">⚙️ Exceções</button>
-
-        <div class="divider"></div>
-
-        <div class="search-group">
-            <input type="text" id="input-search" placeholder="Procurar e tarjar..." autocomplete="off" disabled>
-            <button id="btn-search" class="btn btn-warning" disabled>🔍 Buscar</button>
+    <div id="sidebar" aria-label="Sumário de revisão">
+        <div class="sidebar-header">
+            <span>📑 Sumário de Revisão</span>
+            <span class="badge-count" id="contador-tarjas">0</span>
         </div>
-
-        <div class="divider" style="margin-left: auto;"></div>
-        
-        <select id="tema-seletor" class="tema-seletor" title="Escolha um tema visual">
-            <option value="escuro">Tema Escuro</option>
-            <option value="claro">Tema Claro</option>
-            <option value="sepia">Tema Sépia</option>
-            <option value="verde-amarelo">Tema Verde Amarelo</option>
-        </select>
-        
-        <div class="divider"></div>
-        
-        <button id="btn-cancel" class="btn btn-danger" style="display: none;">🛑 Cancelar</button>
-        <button id="btn-export" class="btn btn-success" disabled>💾 Concluir (Exportar PDF)</button>
-    </div>
-
-    <div class="main-wrapper">
-        <div id="viewer-container">
-            <div id="welcome-msg">
-                <h2>Workflow Seguro Ater V19</h2>
-                <p><strong>Arraste um PDF Original</strong> para iniciar a edição ou revisão.</p>
-                <div class="instrucoes-box">
-                    <p style="margin-top: 0; color: #007bff; font-weight: bold;">Como funciona a Revisão em Dupla?</p>
-                    <ol style="margin: 0; padding-left: 20px; color: var(--text-muted);">
-                        <li>O Analista processa o PDF e clica em <strong>"Salvar Projeto"</strong>.</li>
-                        <li>O Analista envia o PDF Original e o arquivo ".ater" gerado.</li>
-                        <li>O Revisor abre o PDF Original aqui, depois importa o arquivo ".ater" em <strong>"Importar .ater"</strong>.</li>
-                        <li>As marcações reaparecem exatamente onde estavam para conferência.</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-
-        <div id="sidebar-historico">
-            <div class="sidebar-header">
-                <span>📑 Sumário de Revisão</span>
-                <span class="badge-count" id="contador-tarjas">0</span>
-            </div>
-            <div class="historico-list" id="historico-list">
-                <div class="historico-empty">Abra um documento para rastrear as tarjas geradas.</div>
-            </div>
+        <div id="historico-list">
+            <div class="historico-empty">Abra um documento para rastrear as tarjas.</div>
         </div>
     </div>
-    
-    <div id="footer">
-        <div id="progress-container"><div id="progress-bar"></div></div>
-        <div class="status-panel"><div id="sys-status-text">Sistema Ocioso.</div></div>
+</div>
+
+<!-- ============================================================
+     FOOTER
+============================================================ -->
+<div id="footer">
+    <div id="progress-container"><div id="progress-bar"></div></div>
+    <div class="status-panel">
+        <div id="sys-status-text">Sistema ocioso.</div>
+        <div class="page-info" id="page-info"></div>
     </div>
+</div>
 
-    <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+<!-- Toast container -->
+<div id="toast-container" aria-live="polite" aria-atomic="false"></div>
 
-        // --- CONTROLE DE TEMAS ---
-        const seletorTema = document.getElementById('tema-seletor');
-        const temaSalvo = localStorage.getItem('ater_tema') || 'escuro';
-        document.body.setAttribute('data-theme', temaSalvo);
-        seletorTema.value = temaSalvo;
+<!-- ============================================================
+     SCRIPT PRINCIPAL
+============================================================ -->
+<script>
+'use strict';
 
-        seletorTema.addEventListener('change', (e) => {
-            document.body.setAttribute('data-theme', e.target.value);
-            localStorage.setItem('ater_tema', e.target.value);
+// ================================================================
+// CONFIGURAÇÃO PDF.js
+// ================================================================
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ================================================================
+// UTILITÁRIOS
+// ================================================================
+
+/** Gera UUID usando a API nativa do browser. */
+function uuid() {
+    return crypto.randomUUID();
+}
+
+/** Exibe um toast de feedback. @param {'info'|'success'|'error'} tipo */
+function toast(msg, tipo = 'info') {
+    const c = document.getElementById('toast-container');
+    const el = document.createElement('div');
+    el.className = `toast ${tipo}`;
+    el.textContent = msg;
+    c.appendChild(el);
+    setTimeout(() => el.remove(), 3200);
+}
+
+/** Atualiza o texto de status no rodapé. */
+function setStatus(msg) {
+    document.getElementById('sys-status-text').textContent = msg;
+}
+
+/** Cria um elemento com atributos e filhos opcionais (sem innerHTML). */
+function el(tag, attrs = {}, children = []) {
+    const e = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+        if (k === 'className') e.className = v;
+        else if (k.startsWith('on') && typeof v === 'function') e.addEventListener(k.slice(2).toLowerCase(), v);
+        else e.setAttribute(k, v);
+    }
+    for (const child of children) {
+        if (typeof child === 'string') e.appendChild(document.createTextNode(child));
+        else if (child) e.appendChild(child);
+    }
+    return e;
+}
+
+// ================================================================
+// SCHEMAS DE VALIDAÇÃO (.ater import)
+// ================================================================
+
+const TARJA_SCHEMA_KEYS = ['id', 'type', 'pagina', 'nx', 'ny', 'nw', 'nh', 'hora'];
+const TIPOS_VALIDOS = new Set(['regex', 'custom', 'manual']);
+
+function validarTarjaImportada(t) {
+    if (typeof t !== 'object' || t === null) return false;
+    for (const k of TARJA_SCHEMA_KEYS) {
+        if (!(k in t)) return false;
+    }
+    if (!TIPOS_VALIDOS.has(t.type)) return false;
+    if (typeof t.pagina !== 'number' || t.pagina < 1) return false;
+    for (const k of ['nx', 'ny', 'nw', 'nh']) {
+        if (typeof t[k] !== 'number') return false;
+    }
+    return true;
+}
+
+// ================================================================
+// PADRÕES DE DETECÇÃO
+// ================================================================
+
+const PATTERNS = {
+    // CPF: apenas formato pontuado (evita falso positivo com qualquer número de 11 dígitos)
+    CPF:      /\b\d{3}\.\d{3}\.\d{3}-\d{2}\b/g,
+    // RG: formato pontuado
+    RG:       /\b\d{1,2}\.\d{3}\.\d{3}-[\dXx]\b/g,
+    // CEP: ambos formatos
+    CEP:      /\b\d{2}\.\d{3}-\d{3}\b|\b\d{5}-\d{3}\b/g,
+    // Telefone: com ou sem DDD
+    Telefone: /\(?\d{2}\)?\s?\d{4,5}-?\d{4}/g,
+    // Endereços: logradouro + continuação
+    Endereco: /\b(?:Rua|Avenida|Av\.|Travessa|Bairro|Alameda|Rodovia|Rod\.)\s+[^,.\n\r]{3,}/gi,
+    // Nomes compostos: Título Case
+    NomesCompostos:  /\b[A-ZÁÉÍÓÚÀÂÊÔÃÕÇ][a-záéíóúàâêôãõç]{2,}(?:\s+(?:da|de|do|das|dos)\s+)?(?:\s+[A-ZÁÉÍÓÚÀÂÊÔÃÕÇ][a-záéíóúàâêôãõç]{2,}){1,4}\b/g,
+    // Nomes todos maiúsculos
+    NomesMaiusculos: /\b[A-ZÁÉÍÓÚÀÂÊÔÃÕÇ]{3,}(?:\s+(?:DA|DE|DO|DAS|DOS)\s*)?(?:\s+[A-ZÁÉÍÓÚÀÂÊÔÃÕÇ]{3,}){1,4}\b/g,
+};
+
+// ================================================================
+// SISTEMA DE EXCEÇÕES (localStorage com namespace correto)
+// ================================================================
+
+const LS_EXCECOES_KEY = 'ater_v20_excecoes';
+const LS_TEMA_KEY     = 'ater_v20_tema';
+
+const TERMOS_PADRAO = [
+    'LEI', 'DECRETO', 'PORTARIA', 'DATA', 'VENCIMENTO', 'PREFEITURA',
+    'SECRETARIA', 'MUNICIPAL', 'ESTADUAL', 'FEDERAL', 'COMPLEMENTAR',
+    'ARTIGO', 'INCISO', 'PARÁGRAFO', 'ESTADO', 'DISTRITO', 'CONCURSO',
+    'PÚBLICO', 'EDITAL', 'PROCESSO', 'GABINETE', 'DIÁRIO', 'OFICIAL',
+    'RESOLUÇÃO', 'PAÇO', 'MUNICÍPIO', 'PODER', 'EXECUTIVO', 'LEGISLATIVO',
+    'CARGO', 'LOTADA', 'MATRÍCULA', 'SÍMBOLO', 'NÍVEL', 'FUNÇÃO',
+    'BRASIL', 'REPÚBLICA', 'UNIÃO', 'MINISTÉRIO', 'GOVERNO',
+];
+
+let termos_ignorados = new Set();
+
+function carregarExcecoes() {
+    try {
+        const salvas = localStorage.getItem(LS_EXCECOES_KEY);
+        termos_ignorados = salvas ? new Set(JSON.parse(salvas)) : new Set(TERMOS_PADRAO);
+    } catch (_) {
+        termos_ignorados = new Set(TERMOS_PADRAO);
+    }
+    renderizarChips();
+}
+
+function salvarExcecoes() {
+    try {
+        localStorage.setItem(LS_EXCECOES_KEY, JSON.stringify([...termos_ignorados]));
+    } catch (_) {}
+    renderizarChips();
+}
+
+function adicionarTermo(texto) {
+    // Sanitiza: mantém apenas letras, números, espaços e hífens
+    const formatado = texto.trim().toUpperCase().replace(/[^A-ZÁÉÍÓÚÀÂÊÔÃÕÇ0-9\s\-]/g, '').replace(/\s+/g, ' ');
+    if (formatado.length < 2) return;
+    if (!termos_ignorados.has(formatado)) {
+        termos_ignorados.add(formatado);
+        salvarExcecoes();
+        toast(`"${formatado}" adicionado às exceções.`, 'success');
+    }
+    document.getElementById('input-termo').value = '';
+}
+
+function removerTermo(texto) {
+    termos_ignorados.delete(texto);
+    salvarExcecoes();
+}
+
+function renderizarChips() {
+    const container = document.getElementById('chip-container');
+    container.innerHTML = '';
+    [...termos_ignorados].sort().forEach(termo => {
+        // Cria sem innerHTML para evitar XSS
+        const chip = el('div', { className: 'chip' }, [
+            el('span', {}, [termo]),
+            el('button', {
+                className: 'chip-remove',
+                title: `Remover "${termo}"`,
+                'aria-label': `Remover ${termo}`,
+                onclick: () => removerTermo(termo),
+            }, ['×']),
+        ]);
+        container.appendChild(chip);
+    });
+}
+
+// ================================================================
+// ESTADO CENTRALIZADO
+// ================================================================
+
+const state = {
+    pdfDoc:       null,   // PDFDocumentProxy (PDF.js)
+    pdfBytes:     null,   // ArrayBuffer original (para pdf-lib)
+    pagesData:    [],     // Array de { num, viewport, container, canvas, ctx, layer, textItems }
+    mode:         'view', // 'view' | 'draw'
+    scale:        1.5,
+    isDrawing:    false,
+    drawStart:    { x: 0, y: 0 },
+    currentTarja: null,   // elemento em construção
+    isProcessing: false,
+    cancelFlag:   false,
+};
+
+// Histórico de tarjas — fonte única de verdade
+// Estrutura: { id, type, pagina (1-based), hora, termo|null, nx, ny, nw, nh }
+// NOTA: 'termo' contém o texto detectado. Nos exports .ater, esse campo é OMITIDO
+// por segurança (dados sensíveis não devem sair no arquivo de projeto).
+let historicoTarjas = [];
+
+// Stack de undo (guarda apenas o id da última tarja criada para desfazer)
+let undoStack = [];
+
+// ================================================================
+// REFERÊNCIAS DE UI
+// ================================================================
+
+const UI = {
+    fileInput:       document.getElementById('file-input'),
+    fileImport:      document.getElementById('file-import'),
+    lblImport:       document.getElementById('lbl-import'),
+    btnClearDoc:     document.getElementById('btn-clear-doc'),
+    btnClearTarjas:  document.getElementById('btn-clear-tarjas'),
+    btnView:         document.getElementById('btn-mode-view'),
+    btnDraw:         document.getElementById('btn-mode-draw'),
+    btnUndo:         document.getElementById('btn-undo'),
+    btnZoomIn:       document.getElementById('btn-zoom-in'),
+    btnZoomOut:      document.getElementById('btn-zoom-out'),
+    btnCancel:       document.getElementById('btn-cancel'),
+    btnExport:       document.getElementById('btn-export'),
+    btnExportProjeto:document.getElementById('btn-export-projeto'),
+    btnExcecoes:     document.getElementById('btn-excecoes'),
+    btnAtalhos:      document.getElementById('btn-atalhos'),
+    inputSearch:     document.getElementById('input-search'),
+    btnSearch:       document.getElementById('btn-search'),
+    viewer:          document.getElementById('viewer-container'),
+    welcomeMsg:      document.getElementById('welcome-msg'),
+    historicoList:   document.getElementById('historico-list'),
+    contadorTarjas:  document.getElementById('contador-tarjas'),
+    progressBar:     document.getElementById('progress-bar'),
+    progressContainer: document.getElementById('progress-container'),
+    pageInfo:        document.getElementById('page-info'),
+    modalExcecoes:   document.getElementById('modal-excecoes'),
+    modalAtalhos:    document.getElementById('modal-atalhos'),
+    inputTermo:      document.getElementById('input-termo'),
+};
+
+// ================================================================
+// TEMA
+// ================================================================
+
+function carregarTema() {
+    const salvo = localStorage.getItem(LS_TEMA_KEY) || 'escuro';
+    document.body.setAttribute('data-theme', salvo);
+    document.getElementById('tema-seletor').value = salvo;
+}
+
+document.getElementById('tema-seletor').addEventListener('change', e => {
+    document.body.setAttribute('data-theme', e.target.value);
+    try { localStorage.setItem(LS_TEMA_KEY, e.target.value); } catch (_) {}
+});
+
+// ================================================================
+// MODAIS
+// ================================================================
+
+function abrirModal(modal) { modal.classList.add('open'); }
+function fecharModal(modal) { modal.classList.remove('open'); }
+
+UI.btnExcecoes.onclick = () => abrirModal(UI.modalExcecoes);
+document.getElementById('btn-fechar-excecoes').onclick = () => fecharModal(UI.modalExcecoes);
+UI.btnAtalhos.onclick = () => { construirTabelaAtalhos(); abrirModal(UI.modalAtalhos); };
+document.getElementById('btn-fechar-atalhos').onclick = () => fecharModal(UI.modalAtalhos);
+
+// Fecha modal ao clicar no backdrop
+[UI.modalExcecoes, UI.modalAtalhos].forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) fecharModal(m); });
+});
+
+// Exceções
+document.getElementById('btn-add-termo').onclick = () => adicionarTermo(UI.inputTermo.value);
+UI.inputTermo.addEventListener('keypress', e => { if (e.key === 'Enter') adicionarTermo(e.target.value); });
+
+// Atalhos (tabela)
+const ATALHOS = [
+    ['Ctrl + O', 'Abrir PDF'],
+    ['Ctrl + S', 'Salvar Projeto (.ater)'],
+    ['Ctrl + E', 'Exportar PDF anonimizado'],
+    ['Ctrl + Z', 'Desfazer última tarja'],
+    ['Ctrl + Del', 'Limpar todas as tarjas'],
+    ['V', 'Modo Visualização'],
+    ['D', 'Modo Desenho'],
+    ['+  /  −', 'Zoom in / Zoom out'],
+    ['Enter (na busca)', 'Buscar e tarjar'],
+    ['Esc', 'Fechar modal / cancelar'],
+];
+function construirTabelaAtalhos() {
+    const tbody = document.getElementById('atalhos-tbody');
+    tbody.innerHTML = '';
+    ATALHOS.forEach(([k, d]) => {
+        const tr = el('tr', {}, [
+            el('td', { style: 'padding: 5px 10px; white-space: nowrap;' }, [
+                el('span', { className: 'kbd' }, [k])
+            ]),
+            el('td', { style: 'padding: 5px 10px; color: var(--text-main);' }, [d]),
+        ]);
+        tbody.appendChild(tr);
+    });
+}
+
+// ================================================================
+// CONTROLE DE ESTADO DA UI (habilitar/desabilitar)
+// ================================================================
+
+function setUIEnabled(enabled) {
+    const toggles = [
+        UI.btnView, UI.btnDraw, UI.btnZoomIn, UI.btnZoomOut,
+        UI.btnExport, UI.btnClearDoc, UI.btnClearTarjas,
+        UI.inputSearch, UI.btnSearch, UI.btnExportProjeto,
+        UI.fileImport, UI.btnUndo,
+    ];
+    toggles.forEach(el => { el.disabled = !enabled; });
+
+    if (enabled) UI.lblImport.classList.remove('disabled');
+    else         UI.lblImport.classList.add('disabled');
+}
+
+// ================================================================
+// HISTÓRICO / SIDEBAR
+// ================================================================
+
+function registrarTarja(id, type, pageIndex, w, h, nx, ny, nw, nh, termo = null) {
+    if (historicoTarjas.some(t => t.id === id)) return;
+    const hora = new Date().toLocaleTimeString('pt-BR');
+    historicoTarjas.push({ id, type, pagina: pageIndex + 1, width: Math.round(w), height: Math.round(h), hora, termo, nx, ny, nw, nh });
+    renderizarSidebar();
+    atualizarContador();
+}
+
+function removerRegistro(id) {
+    historicoTarjas = historicoTarjas.filter(t => t.id !== id);
+    undoStack = undoStack.filter(u => u !== id);
+    renderizarSidebar();
+    atualizarContador();
+}
+
+function limparHistorico() {
+    historicoTarjas = [];
+    undoStack = [];
+    renderizarSidebar();
+    atualizarContador();
+}
+
+function atualizarContador() {
+    UI.contadorTarjas.textContent = historicoTarjas.length;
+}
+
+function renderizarSidebar() {
+    const list = UI.historicoList;
+    list.innerHTML = '';
+
+    if (historicoTarjas.length === 0) {
+        list.appendChild(el('div', { className: 'historico-empty' }, ['Nenhuma marcação no documento.']));
+        return;
+    }
+
+    // Agrupar por página
+    const agrupado = {};
+    historicoTarjas.forEach(t => {
+        if (!agrupado[t.pagina]) agrupado[t.pagina] = [];
+        agrupado[t.pagina].push(t);
+    });
+
+    Object.keys(agrupado)
+        .map(Number)
+        .sort((a, b) => a - b)
+        .forEach(pag => {
+            const grupo = agrupado[pag];
+            const groupDiv = document.createElement('div');
+
+            const header = el('div', { className: 'page-group-header' }, [
+                el('span', {}, [`Página ${pag}`]),
+                el('span', {}, [`${grupo.length} tarja(s)`]),
+            ]);
+            groupDiv.appendChild(header);
+
+            grupo.forEach(registro => {
+                const icones = { regex: '🤖', custom: '🔍', manual: '✏️' };
+                const cores  = { regex: 'var(--accent)', custom: 'var(--accent-2)', manual: '#888' };
+
+                const item = el('div', {
+                    className: `historico-item ${registro.type}`,
+                    id: `hist-${registro.id}`,
+                });
+
+                const cabecalho = el('div', { style: 'display:flex; justify-content:space-between; align-items:center; padding-right: 22px;' }, [
+                    el('span', { style: `color:${cores[registro.type]}; font-weight:600;` }, [
+                        `${icones[registro.type]} ${registro.tipo_label || tipoLabel(registro)}`
+                    ]),
+                ]);
+
+                const hora = el('div', { style: 'font-size: 9px; color: var(--text-muted);' }, [`Às ${registro.hora}`]);
+
+                const btnRem = el('button', {
+                    className: 'hist-remove',
+                    title: 'Remover tarja',
+                    'aria-label': 'Remover tarja',
+                    onclick: () => removerTarjaPeloSidebar(registro.id),
+                }, ['×']);
+
+                item.appendChild(cabecalho);
+                item.appendChild(hora);
+                item.appendChild(btnRem);
+                groupDiv.appendChild(item);
+            });
+
+            list.appendChild(groupDiv);
         });
+}
 
-        // --- FUNÇÃO DE SEGURANÇA (XSS) ---
-        function sanitizarHTML(str) {
-            if (!str) return null;
-            return String(str).replace(/[&<>"']/g, function(match) {
-                const escapeMap = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
-                return escapeMap[match];
+function tipoLabel(registro) {
+    // Não expõe o termo detectado no sidebar para evitar re-exibição de dados sensíveis
+    const labels = { regex: 'Auto-detectado', custom: 'Busca manual', manual: 'Marcação manual' };
+    return labels[registro.type] || registro.type;
+}
+
+function removerTarjaPeloSidebar(id) {
+    const tarja = document.querySelector(`.tarja[data-id="${id}"]`);
+    if (tarja) tarja.remove();
+    removerRegistro(id);
+}
+
+// ================================================================
+// DRAG AND DROP + LEITURA DE ARQUIVO
+// ================================================================
+
+let dragCounter = 0;
+window.addEventListener('dragover', e => e.preventDefault());
+window.addEventListener('dragenter', e => {
+    e.preventDefault();
+    dragCounter++;
+    document.getElementById('drag-overlay').style.display = 'flex';
+});
+window.addEventListener('dragleave', e => {
+    e.preventDefault();
+    dragCounter--;
+    if (dragCounter <= 0) { dragCounter = 0; document.getElementById('drag-overlay').style.display = 'none'; }
+});
+window.addEventListener('drop', e => {
+    e.preventDefault();
+    dragCounter = 0;
+    document.getElementById('drag-overlay').style.display = 'none';
+    if (e.dataTransfer.files?.[0]) iniciarProcessamento(e.dataTransfer.files[0]);
+});
+
+UI.fileInput.onchange = e => {
+    if (e.target.files?.[0]) iniciarProcessamento(e.target.files[0]);
+};
+
+// ================================================================
+// PROCESSAMENTO DO PDF
+// ================================================================
+
+async function iniciarProcessamento(file) {
+    if (file.type !== 'application/pdf') {
+        toast('Arquivo inválido. Selecione um PDF.', 'error');
+        return;
+    }
+
+    // Reset
+    state.pdfDoc = null;
+    state.pdfBytes = null;
+    state.pagesData = [];
+    state.cancelFlag = false;
+    UI.viewer.innerHTML = '';
+    UI.fileInput.value = '';
+    UI.inputSearch.value = '';
+    limparHistorico();
+    setStatus('Lendo PDF...');
+
+    try {
+        state.pdfBytes = await file.arrayBuffer();
+        state.pdfDoc = await pdfjsLib.getDocument({ data: state.pdfBytes.slice(0) }).promise;
+    } catch (err) {
+        toast('Erro ao abrir o PDF. O arquivo pode estar corrompido ou protegido por senha.', 'error');
+        setStatus('Erro ao abrir o PDF.');
+        UI.viewer.appendChild(UI.welcomeMsg);
+        return;
+    }
+
+    // Constrói containers de páginas
+    for (let i = 1; i <= state.pdfDoc.numPages; i++) {
+        try {
+            await buildPageContainer(i);
+        } catch (err) {
+            console.error(`Erro ao renderizar página ${i}:`, err);
+            toast(`Erro ao renderizar página ${i}.`, 'error');
+        }
+    }
+
+    state.isProcessing = true;
+    UI.btnCancel.style.display = 'flex';
+    setUIEnabled(false);
+
+    processarProximaPagina(0);
+}
+
+async function buildPageContainer(num) {
+    const page = await state.pdfDoc.getPage(num);
+    const viewport = page.getViewport({ scale: state.scale });
+
+    const wrapper = el('div', { className: 'page-wrapper' });
+    const label   = el('div', { className: 'page-label' }, [`Página ${num} de ${state.pdfDoc.numPages}`]);
+    const container = el('div', { className: 'page-container processing' });
+    container.style.width  = viewport.width  + 'px';
+    container.style.height = viewport.height + 'px';
+
+    const canvas = el('canvas');
+    canvas.width  = viewport.width;
+    canvas.height = viewport.height;
+
+    const layer  = el('div', { className: 'interaction-layer' });
+    const loader = el('div', { className: 'page-loader' }, [
+        el('div', { className: 'spinner' }),
+        el('div', { className: 'loader-text' }, ['Analisando padrões...']),
+    ]);
+
+    container.appendChild(canvas);
+    container.appendChild(layer);
+    container.appendChild(loader);
+    wrapper.appendChild(label);
+    wrapper.appendChild(container);
+    UI.viewer.appendChild(wrapper);
+
+    const ctx = canvas.getContext('2d');
+    await page.render({ canvasContext: ctx, viewport }).promise;
+    const textContent = await page.getTextContent();
+
+    state.pagesData.push({
+        num, viewport, container, canvas, ctx, layer,
+        textItems: textContent.items,
+    });
+
+    setupManualDrawing(layer, num - 1);
+    UI.pageInfo.textContent = `${state.pdfDoc.numPages} página(s)`;
+}
+
+function processarProximaPagina(index) {
+    if (state.cancelFlag) return;
+    if (index >= state.pagesData.length) {
+        state.isProcessing = false;
+        UI.btnCancel.style.display = 'none';
+        setUIEnabled(true);
+        setStatus(`Detecção concluída — ${historicoTarjas.length} marcação(ões) encontrada(s). Revise o documento.`);
+        toast('Detecção automática concluída.', 'success');
+        return;
+    }
+    aplicarRegex(index);
+    setTimeout(() => processarProximaPagina(index + 1), 10);
+}
+
+// ================================================================
+// DETECÇÃO POR REGEX
+// ================================================================
+
+function aplicarRegex(pageIndex) {
+    const pageData = state.pagesData[pageIndex];
+
+    pageData.textItems.forEach(item => {
+        const text = item.str;
+        if (!text.trim()) return;
+
+        const tx        = pdfjsLib.Util.transform(pageData.viewport.transform, item.transform);
+        const totalW    = item.width * pageData.viewport.scale;
+        const height    = item.height || Math.abs(tx[3]);
+        const offsetY   = height * 0.85;
+
+        for (const key in PATTERNS) {
+            // Reinicia lastIndex para evitar comportamento inesperado com /g
+            PATTERNS[key].lastIndex = 0;
+            const matches = [...text.matchAll(PATTERNS[key])];
+
+            for (const match of matches) {
+                const matchText = match[0];
+
+                // Filtra nomes que contenham termos ignorados
+                if (key === 'NomesCompostos' || key === 'NomesMaiusculos') {
+                    const palavras = matchText.toUpperCase().replace(/[.,]/g, '').split(/\s+/);
+                    if (palavras.some(p => termos_ignorados.has(p))) continue;
+                    // Ignora "nomes" com 1 palavra apenas (sobrou após filtro)
+                    if (palavras.filter(p => p.length > 2 && !['DA','DE','DO','DAS','DOS'].includes(p)).length < 2) continue;
+                }
+
+                const startX    = tx[4] + (totalW * (match.index / text.length));
+                const tarjaWidth = totalW * (matchText.length / text.length);
+                addTarja(pageData.layer, startX, tx[5] - offsetY, tarjaWidth, height, 'regex', pageIndex, key);
+            }
+        }
+    });
+
+    pageData.container.classList.remove('processing');
+}
+
+// ================================================================
+// BUSCA CUSTOMIZADA
+// ================================================================
+
+UI.btnSearch.onclick = () => executarBusca();
+UI.inputSearch.addEventListener('keypress', e => { if (e.key === 'Enter') executarBusca(); });
+
+function executarBusca() {
+    const termo = UI.inputSearch.value.trim();
+    if (termo.length < 2) { toast('Digite ao menos 2 caracteres.', 'error'); return; }
+
+    // Escapa caracteres especiais de regex
+    const escaped = termo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex   = new RegExp(escaped, 'gi');
+    let total = 0;
+
+    state.pagesData.forEach((pageData, index) => {
+        pageData.textItems.forEach(item => {
+            const text = item.str;
+            if (!text.trim()) return;
+            regex.lastIndex = 0;
+            const matches = [...text.matchAll(regex)];
+            if (!matches.length) return;
+
+            const tx      = pdfjsLib.Util.transform(pageData.viewport.transform, item.transform);
+            const totalW  = item.width * pageData.viewport.scale;
+            const height  = item.height || Math.abs(tx[3]);
+            const offsetY = height * 0.85;
+
+            matches.forEach(match => {
+                const startX    = tx[4] + (totalW * (match.index / text.length));
+                const tarjaWidth = totalW * (match[0].length  / text.length);
+                addTarja(pageData.layer, startX, tx[5] - offsetY, tarjaWidth, height, 'custom', index, null);
+                total++;
             });
-        }
+        });
+    });
 
-        const PATTERNS = {
-            CPF: /\b\d{3}\.\d{3}\.\d{3}-\d{2}\b|\b\d{11}\b/g,
-            RG: /\b\d{1,2}\.\d{3}\.\d{3}-[\dX]\b/gi,
-            CEP: /\b\d{2}\.\d{3}-\d{3}\b|\b\d{5}-\d{3}\b/g,
-            Telefone: /\(?\d{2}\)?\s?\d{4,5}-?\d{4}/g,
-            Endereco: /\b(Rua|Avenida|Av\.|Travessa|Bairro|Alameda|Rodovia|Rod\.)\b\s+[^,\.\n\r]+/gi,
-            NomesCompostos: /\b[A-ZÁÉÍÓÚÀÂÊÔÃÕÇ][a-záéíóúàâêôãõç]+\s+(?:(?:da|de|do|das|dos)\s+)?[A-ZÁÉÍÓÚÀÂÊÔÃÕÇ][a-záéíóúàâêôãõç]+(?:\s+(?:(?:da|de|do|das|dos)\s+)?[A-ZÁÉÍÓÚÀÂÊÔÃÕÇ][a-záéíóúàâêôãõç]+)*\b/g,
-            NomesMaiusculos: /\b[A-ZÁÉÍÓÚÀÂÊÔÃÕÇ]{3,}\s+(?:(?:DA|DE|DO|DAS|DOS)\s+)?[A-ZÁÉÍÓÚÀÂÊÔÃÕÇ]{3,}(?:\s+(?:(?:DA|DE|DO|DAS|DOS)\s+)?[A-ZÁÉÍÓÚÀÂÊÔÃÕÇ]{3,})*\b/g
-        };
+    setStatus(`Busca concluída: ${total} ocorrência(s) tarjada(s).`);
+    toast(`${total} ocorrência(s) encontrada(s) para "${termo}".`, total > 0 ? 'success' : 'info');
+    UI.inputSearch.value = '';
+}
 
-        const TERMOS_PADRAO = ['LEI', 'DECRETO', 'PORTARIA', 'DATA', 'VENCIMENTO', 'PREFEITURA', 'SECRETARIA', 'MUNICIPAL', 'ESTADUAL', 'FEDERAL', 'COMPLEMENTAR', 'ARTIGO', 'INCISO', 'PARÁGRAFO', 'ESTADO', 'DISTRITO', 'CONCURSO', 'PÚBLICO', 'EDITAL', 'PROCESSO', 'GABINETE', 'DIÁRIO', 'OFICIAL', 'RESOLUÇÃO', 'PAÇO', 'MUNICÍPIO', 'PODER', 'EXECUTIVO', 'LEGISLATIVO', 'CARGO', 'LOTADA', 'MATRÍCULA', 'SÍMBOLO', 'NÍVEL', 'FUNÇÃO'];
-        let TERMOS_IGNORADOS = new Set();
-        let historicoTarjas = [];
+// ================================================================
+// CRIAÇÃO DE TARJA (única fonte)
+// ================================================================
 
-        const state = {
-            pdfDoc: null, pagesData: [], mode: 'view', scale: 1.5,
-            isDrawing: false, startX: 0, startY: 0, currentTarja: null,
-            isProcessing: false, cancelRequested: false
-        };
+const PAD_X = 4, PAD_Y = 3;
 
-        const UI = {
-            fileInput: document.getElementById('file-input'), 
-            btnClearDoc: document.getElementById('btn-clear-doc'),
-            btnClearTarjas: document.getElementById('btn-clear-tarjas'),
-            btnView: document.getElementById('btn-mode-view'), 
-            btnDraw: document.getElementById('btn-mode-draw'),
-            btnZoomIn: document.getElementById('btn-zoom-in'), 
-            btnZoomOut: document.getElementById('btn-zoom-out'),
-            btnCancel: document.getElementById('btn-cancel'), 
-            btnExport: document.getElementById('btn-export'),
-            viewer: document.getElementById('viewer-container'), 
-            welcomeMsg: document.getElementById('welcome-msg'),
-            sysStatusText: document.getElementById('sys-status-text'), 
-            dragOverlay: document.getElementById('drag-overlay'),
-            inputSearch: document.getElementById('input-search'), 
-            btnSearch: document.getElementById('btn-search'),
-            btnExportRascunho: document.getElementById('btn-export-rascunho'),
-            fileImportRascunho: document.getElementById('file-import'),
-            lblImportRascunho: document.getElementById('lbl-import-rascunho'),
-            btnExcecoes: document.getElementById('btn-excecoes'),
-            modalExcecoes: document.getElementById('modal-excecoes'),
-            inputTermo: document.getElementById('input-termo'),
-            btnAddTermo: document.getElementById('btn-add-termo'),
-            chipContainer: document.getElementById('chip-container'),
-            historicoList: document.getElementById('historico-list'),
-            contadorTarjas: document.getElementById('contador-tarjas')
-        };
+/**
+ * Cria e registra uma tarja no layer da página.
+ * @param {HTMLElement} layer
+ * @param {number} x - coordenada X do texto no canvas
+ * @param {number} y - coordenada Y do texto no canvas
+ * @param {number} w - largura do texto no canvas
+ * @param {number} h - altura do texto
+ * @param {'regex'|'custom'|'manual'} type
+ * @param {number} pageIndex - índice (0-based) da página
+ * @param {string|null} termo - padrão detectado (nunca vai para o export)
+ * @param {string} [idOverride] - ID externo (usado no import)
+ */
+function addTarja(layer, x, y, w, h, type, pageIndex, termo, idOverride = null) {
+    const id = idOverride || uuid();
 
-        // --- SISTEMA DE EXCEÇÕES ---
-        function carregarExcecoes() {
-            const salvas = localStorage.getItem('ater_excecoes');
-            if (salvas) TERMOS_IGNORADOS = new Set(JSON.parse(salvas));
-            else { TERMOS_IGNORADOS = new Set(TERMOS_PADRAO); salvarExcecoes(); }
-            renderizarChips();
-        }
-        function salvarExcecoes() { localStorage.setItem('ater_excecoes', JSON.stringify([...TERMOS_IGNORADOS])); renderizarChips(); }
-        function adicionarTermo(texto) {
-            let formatado = texto.trim().toUpperCase().replace(/[.,]/g, '');
-            formatado = sanitizarHTML(formatado);
-            
-            if (formatado && !TERMOS_IGNORADOS.has(formatado)) { TERMOS_IGNORADOS.add(formatado); salvarExcecoes(); }
-            UI.inputTermo.value = '';
-        }
-        function removerTermo(texto) { TERMOS_IGNORADOS.delete(texto); salvarExcecoes(); }
-        function renderizarChips() {
-            UI.chipContainer.innerHTML = '';
-            [...TERMOS_IGNORADOS].sort().forEach(termo => {
-                const chip = document.createElement('div'); chip.className = 'chip';
-                chip.innerHTML = `<span>${termo}</span> <span class="chip-remove" onclick="removerTermo('${termo}')">×</span>`;
-                UI.chipContainer.appendChild(chip);
-            });
-        }
-        
-        UI.btnExcecoes.onclick = () => UI.modalExcecoes.style.display = 'flex';
-        UI.btnAddTermo.onclick = () => adicionarTermo(UI.inputTermo.value);
-        UI.inputTermo.addEventListener('keypress', e => { if (e.key === 'Enter') adicionarTermo(e.target.value); });
-        carregarExcecoes();
+    const div = el('div', { className: `tarja ${type}`, 'data-id': id });
+    div.style.left   = (x - PAD_X) + 'px';
+    div.style.top    = (y - PAD_Y) + 'px';
+    div.style.width  = (w + PAD_X * 2) + 'px';
+    div.style.height = (h + PAD_Y * 2) + 'px';
 
-        // --- SISTEMA DE METADADOS & SIDEBAR ---
-        function registrarNoHistorico(id, type, pageIndex, w, h, termo, normX, normY, normW, normH) {
-            if (historicoTarjas.some(t => t.id === id)) return; 
-            
-            const hora = new Date().toLocaleTimeString('pt-BR');
-            const termoSeguro = sanitizarHTML(termo);
-            
-            const registro = { 
-                id, type, pagina: pageIndex + 1, 
-                width: Math.round(w), height: Math.round(h), 
-                hora, termo: termoSeguro, 
-                nx: normX, ny: normY, nw: normW, nh: normH 
-            };
-            
-            historicoTarjas.push(registro);
-            renderizarSidebarHistorico();
-            atualizarContador();
-        }
+    const btnRem = el('button', {
+        className: 'tarja-remove',
+        title: 'Remover esta tarja',
+        'aria-label': 'Remover tarja',
+    }, ['×']);
 
-        function renderizarSidebarHistorico() {
-            UI.historicoList.innerHTML = '';
-            if (historicoTarjas.length === 0) {
-                UI.historicoList.innerHTML = '<div class="historico-empty">O documento não possui marcações.</div>';
+    btnRem.addEventListener('mousedown', e => e.stopPropagation());
+    btnRem.addEventListener('click', e => {
+        e.stopPropagation();
+        removerRegistro(id);
+        div.remove();
+    });
+
+    div.appendChild(btnRem);
+    layer.appendChild(div);
+
+    const nx = x / state.scale;
+    const ny = y / state.scale;
+    const nw = w / state.scale;
+    const nh = h / state.scale;
+
+    registrarTarja(id, type, pageIndex, w, h, nx, ny, nw, nh, termo);
+
+    // Apenas tarjas criadas pelo usuário (não import) entram no undoStack
+    if (!idOverride) undoStack.push(id);
+
+    return id;
+}
+
+// ================================================================
+// DESFAZER (Ctrl+Z)
+// ================================================================
+
+function desfazerUltima() {
+    if (!undoStack.length) { toast('Nada para desfazer.'); return; }
+    const id = undoStack.pop();
+    const tarja = document.querySelector(`.tarja[data-id="${id}"]`);
+    if (tarja) tarja.remove();
+    removerRegistro(id);
+    toast('Última tarja desfeita.');
+}
+
+// ================================================================
+// IMPORT de arquivo .ater (restaura tarjas sem o campo "termo")
+// ================================================================
+
+UI.fileImport.onchange = e => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = event => {
+        try {
+            const dados = JSON.parse(event.target.result);
+            if (!Array.isArray(dados)) throw new Error('Não é array');
+
+            const invalidos = dados.filter(t => !validarTarjaImportada(t));
+            if (invalidos.length > 0) {
+                toast(`${invalidos.length} registro(s) inválido(s) ignorado(s).`, 'error');
+            }
+
+            const validos = dados.filter(validarTarjaImportada);
+            if (validos.length === 0) {
+                toast('Nenhuma marcação válida encontrada no arquivo.', 'error');
                 return;
             }
-            const agrupado = historicoTarjas.reduce((acc, obj) => {
-                let key = obj.pagina;
-                if (!acc[key]) acc[key] = [];
-                acc[key].push(obj);
-                return acc;
-            }, {});
 
-            Object.keys(agrupado).sort((a,b) => parseInt(a) - parseInt(b)).forEach(pag => {
-                const groupDiv = document.createElement('div');
-                groupDiv.innerHTML = `<div class="page-group-header"><span>Página ${pag}</span> <span>${agrupado[pag].length} tarja(s)</span></div>`;
-                agrupado[pag].sort((a,b) => b.id.localeCompare(a.id)).forEach(registro => {
-                    const item = document.createElement('div');
-                    item.className = `historico-item ${registro.type}`;
-                    item.id = `hist-${registro.id}`;
-                    let icone = '✏️', cor = 'var(--text-muted)';
-                    if (registro.type === 'regex') { icone = '🤖'; cor = '#007bff'; }
-                    else if (registro.type === 'custom') { icone = '🔍'; cor = '#ff9800'; }
-                    item.innerHTML = `
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding-right: 20px;">
-                            <span style="color: ${cor}; font-weight: bold;">${icone} ${registro.termo || 'Marcação Manual'}</span>
-                        </div>
-                        <div style="font-size: 9px; color: var(--text-muted);">Gerado às ${registro.hora}</div>
-                        <div class="hist-remove" onclick="removerTarjaPeloSidebar('${registro.id}')" title="Excluir tarja">×</div>
-                    `;
-                    groupDiv.appendChild(item);
-                });
-                UI.historicoList.appendChild(groupDiv);
+            // Limpa tarjas existentes
+            state.pagesData.forEach(p => p.layer.innerHTML = '');
+            limparHistorico();
+
+            validos.forEach(t => {
+                const pIdx = t.pagina - 1;
+                if (pIdx >= state.pagesData.length) return;
+                const layer = state.pagesData[pIdx].layer;
+                const realX = t.nx * state.scale;
+                const realY = t.ny * state.scale;
+                const realW = t.nw * state.scale;
+                const realH = t.nh * state.scale;
+                addTarja(layer, realX, realY, realW, realH, t.type, pIdx, null, t.id);
+                // Remove do undoStack pois é importado, não criado pelo usuário
+                undoStack.pop();
+                // Corrige hora do registro importado
+                const reg = historicoTarjas.find(r => r.id === t.id);
+                if (reg) reg.hora = t.hora;
             });
+
+            renderizarSidebar();
+            toast(`${validos.length} marcação(ões) importada(s) com sucesso.`, 'success');
+            setStatus(`Projeto carregado: ${validos.length} marcação(ões) restaurada(s).`);
+        } catch (err) {
+            toast('Erro ao ler o arquivo .ater. Verifique se é válido.', 'error');
         }
+        e.target.value = '';
+    };
+    reader.readAsText(file);
+};
 
-        function removerTarjaPeloSidebar(id) {
-            const tarja = document.querySelector(`.tarja[data-id="${id}"]`);
-            if (tarja) tarja.remove();
-            removerRegistroArrayEDOM(id);
+// ================================================================
+// EXPORT de projeto .ater
+// SEGURANÇA: O campo "termo" (dado sensível) é OMITIDO do export.
+// O arquivo contém apenas: id, type, pagina, hora, nx, ny, nw, nh.
+// ================================================================
+
+UI.btnExportProjeto.onclick = () => {
+    if (historicoTarjas.length === 0) {
+        toast('Nenhuma marcação para salvar.', 'error');
+        return;
+    }
+
+    // Remove o campo "termo" do export (contém dados sensíveis)
+    const exportData = historicoTarjas.map(({ termo, ...resto }) => resto);
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const a    = el('a', { href: url, download: `Projeto_${isoNow()}.ater` });
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+
+    setStatus('Projeto salvo. Envie o PDF original + este arquivo .ater ao Revisor.');
+    toast('Projeto .ater exportado com sucesso.', 'success');
+};
+
+function isoNow() {
+    return new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+}
+
+// ================================================================
+// MODO DE INTERAÇÃO (view / draw)
+// ================================================================
+
+UI.btnView.onclick = () => setMode('view');
+UI.btnDraw.onclick = () => setMode('draw');
+
+function setMode(m) {
+    state.mode = m;
+    UI.btnView.classList.toggle('active', m === 'view');
+    UI.btnDraw.classList.toggle('active', m === 'draw');
+    state.pagesData.forEach(p => {
+        if (p.layer) p.layer.classList.toggle('draw-mode', m === 'draw');
+    });
+}
+
+// ================================================================
+// DESENHO MANUAL DE TARJAS
+// ================================================================
+
+function setupManualDrawing(layer, pageIndex) {
+    layer.addEventListener('mousedown', e => {
+        if (state.mode !== 'draw') return;
+        state.isDrawing = true;
+        const r = layer.getBoundingClientRect();
+        state.drawStart = { x: e.clientX - r.left, y: e.clientY - r.top };
+        state.currentTarja = el('div', { className: 'tarja drawing' });
+        state.currentTarja.style.left = state.drawStart.x + 'px';
+        state.currentTarja.style.top  = state.drawStart.y + 'px';
+        layer.appendChild(state.currentTarja);
+    });
+
+    layer.addEventListener('mousemove', e => {
+        if (!state.isDrawing || !state.currentTarja) return;
+        const r = layer.getBoundingClientRect();
+        const cx = e.clientX - r.left, cy = e.clientY - r.top;
+        state.currentTarja.style.width  = Math.abs(cx - state.drawStart.x) + 'px';
+        state.currentTarja.style.height = Math.abs(cy - state.drawStart.y) + 'px';
+        state.currentTarja.style.left   = Math.min(cx, state.drawStart.x) + 'px';
+        state.currentTarja.style.top    = Math.min(cy, state.drawStart.y) + 'px';
+    });
+
+    layer.addEventListener('mouseup', () => {
+        if (!state.isDrawing || !state.currentTarja) return;
+        state.isDrawing = false;
+
+        const finalW = parseFloat(state.currentTarja.style.width  || 0);
+        const finalH = parseFloat(state.currentTarja.style.height || 0);
+        const finalX = parseFloat(state.currentTarja.style.left   || 0);
+        const finalY = parseFloat(state.currentTarja.style.top    || 0);
+
+        state.currentTarja.remove();
+        state.currentTarja = null;
+
+        if (finalW > 5 && finalH > 5) {
+            // finalX/finalY já são as coordenadas do canto superior-esquerdo do retângulo desenhado.
+            // addTarja vai subtrair PAD internamente ao posicionar o div, então passamos direto.
+            addTarja(layer, finalX, finalY, finalW, finalH, 'manual', pageIndex, null);
         }
+    });
+}
 
-        function removerRegistroArrayEDOM(id) {
-            historicoTarjas = historicoTarjas.filter(item => item.id !== id);
-            renderizarSidebarHistorico();
-            atualizarContador();
-        }
+// ================================================================
+// ZOOM
+// ================================================================
 
-        function limparHistorico() {
-            historicoTarjas = [];
-            renderizarSidebarHistorico();
-            atualizarContador();
-        }
+UI.btnZoomIn.onclick  = () => alterarZoom(+0.2);
+UI.btnZoomOut.onclick = () => alterarZoom(-0.2);
 
-        function atualizarContador() {
-            UI.contadorTarjas.textContent = historicoTarjas.length;
-        }
+async function alterarZoom(delta) {
+    const novoScale = Math.round((state.scale + delta) * 10) / 10;
+    if (novoScale < 0.6 || novoScale > 3.5) return;
 
-        // --- EXPORTAÇÃO E IMPORTAÇÃO ---
-        UI.btnExportRascunho.onclick = () => {
-            if (historicoTarjas.length === 0) { alert("Não há tarjas para salvar. Faça alguma marcação primeiro."); return; }
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(historicoTarjas));
-            const downloadAnchorNode = document.createElement('a');
-            downloadAnchorNode.setAttribute("href", dataStr);
-            const dataAtual = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
-            downloadAnchorNode.setAttribute("download", `Projeto_Revisao_${dataAtual}.ater`);
-            document.body.appendChild(downloadAnchorNode); downloadAnchorNode.click(); downloadAnchorNode.remove();
-            UI.sysStatusText.textContent = "Projeto salvo. Envie o PDF original e este arquivo (.ater) para o Revisor.";
-        };
+    state.scale = novoScale;
+    setStatus(`Ajustando zoom para ${state.scale.toFixed(1)}x...`);
 
-        UI.fileImportRascunho.onchange = (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                try {
-                    const importedData = JSON.parse(event.target.result);
-                    if (!Array.isArray(importedData)) throw new Error("Formato inválido");
-                    state.pagesData.forEach(p => p.layer.innerHTML = '');
-                    historicoTarjas = []; 
-                    
-                    importedData.forEach(tarja => {
-                        const realX = tarja.nx * state.scale, realY = tarja.ny * state.scale, realW = tarja.nw * state.scale, realH = tarja.nh * state.scale;
-                        if(tarja.pagina - 1 < state.pagesData.length) {
-                            const layer = state.pagesData[tarja.pagina - 1].layer;
-                            addTarjaFromImport(layer, realX, realY, realW, realH, tarja.type, tarja.pagina - 1, tarja.termo, tarja.id, tarja);
-                        }
-                    });
-                    UI.sysStatusText.textContent = `Projeto carregado! ${importedData.length} marcações restauradas para edição.`;
-                } catch (error) { alert("Erro ao ler o arquivo. Verifique se o arquivo .ater é válido."); }
-                e.target.value = ''; 
-            };
-            reader.readAsText(file);
-        };
+    // Backup dos registros antes de reconstruir
+    const backup = JSON.parse(JSON.stringify(historicoTarjas));
+    limparHistorico();
 
-        // --- BUSCA CUSTOMIZADA ---
-        UI.btnSearch.onclick = () => executarBuscaCustomizada();
-        UI.inputSearch.addEventListener('keypress', (e) => { if (e.key === 'Enter') executarBuscaCustomizada(); });
+    for (let i = 0; i < state.pagesData.length; i++) {
+        const p    = state.pagesData[i];
+        const page = await state.pdfDoc.getPage(p.num);
+        p.viewport = page.getViewport({ scale: state.scale });
 
-        function executarBuscaCustomizada() {
-            const termo = UI.inputSearch.value.trim();
-            if (!termo || termo.length < 2) return;
-            UI.sysStatusText.textContent = `Buscando e tarjando "${termo}"...`;
-            const regexCustomizado = new RegExp(termo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-            let totalEncontrado = 0;
+        p.container.style.width  = p.viewport.width  + 'px';
+        p.container.style.height = p.viewport.height + 'px';
+        p.canvas.width  = p.viewport.width;
+        p.canvas.height = p.viewport.height;
 
-            state.pagesData.forEach((pageData, index) => {
-                pageData.textItems.forEach(item => {
-                    const text = item.str;
-                    if (!text.trim()) return;
-                    const matches = [...text.matchAll(regexCustomizado)];
-                    if (matches.length > 0) {
-                        const tx = pdfjsLib.Util.transform(pageData.viewport.transform, item.transform);
-                        const totalWidth = item.width * pageData.viewport.scale, height = item.height || Math.abs(tx[3]), offsetY = height * 0.85;
-                        matches.forEach(match => {
-                            const startX = tx[4] + (totalWidth * (match.index / text.length)), tarjaWidth = totalWidth * (match[0].length / text.length);
-                            addTarja(pageData.layer, startX, tx[5] - offsetY, tarjaWidth, height, 'custom', index, match[0]);
-                            totalEncontrado++;
-                        });
-                    }
+        await page.render({ canvasContext: p.ctx, viewport: p.viewport }).promise;
+        p.layer.innerHTML = '';
+
+        // Restaura tarjas com novas coordenadas
+        backup
+            .filter(t => t.pagina - 1 === i)
+            .forEach(t => {
+                const rx = t.nx * state.scale;
+                const ry = t.ny * state.scale;
+                const rw = t.nw * state.scale;
+                const rh = t.nh * state.scale;
+                addTarja(p.layer, rx, ry, rw, rh, t.type, i, null, t.id);
+                // Restaura hora original
+                const reg = historicoTarjas.find(r => r.id === t.id);
+                if (reg) reg.hora = t.hora;
+                // Remove do undoStack (é restauração, não ação do usuário)
+                undoStack.pop();
+            });
+    }
+
+    renderizarSidebar();
+    setStatus(`Zoom: ${state.scale.toFixed(1)}x — tarjas preservadas.`);
+}
+
+// ================================================================
+// LIMPAR DOCUMENTO / TARJAS
+// ================================================================
+
+UI.btnClearDoc.onclick = () => {
+    if (!confirm('Fechar o documento atual? Todas as marcações serão perdidas.')) return;
+    fecharDocumento();
+};
+
+function fecharDocumento() {
+    state.pdfDoc = null;
+    state.pdfBytes = null;
+    state.pagesData = [];
+    state.cancelFlag = false;
+    UI.viewer.innerHTML = '';
+    UI.fileInput.value = '';
+    UI.inputSearch.value = '';
+    limparHistorico();
+    UI.viewer.appendChild(UI.welcomeMsg);
+    UI.pageInfo.textContent = '';
+    setStatus('Sistema ocioso.');
+    setUIEnabled(false);
+}
+
+UI.btnClearTarjas.onclick = () => {
+    if (!confirm('Remover TODAS as tarjas do documento?')) return;
+    state.pagesData.forEach(p => p.layer.innerHTML = '');
+    limparHistorico();
+    setStatus('Todas as tarjas foram removidas.');
+    toast('Tarjas removidas.', 'success');
+};
+
+// ================================================================
+// CANCELAR PROCESSAMENTO
+// ================================================================
+
+UI.btnCancel.onclick = () => {
+    if (!state.isProcessing) return;
+    state.cancelFlag = true;
+    state.isProcessing = false;
+    state.pagesData.forEach(p => p.container.classList.remove('processing'));
+    UI.btnCancel.style.display = 'none';
+    setUIEnabled(true);
+    setStatus('Processamento cancelado pelo usuário.');
+    toast('Cancelado.', 'info');
+};
+
+// ================================================================
+// EXPORTAÇÃO SEGURA COM PDF-LIB
+// ================================================================
+// A exportação NÃO converte o PDF em JPEG. Em vez disso:
+// 1. Carrega o PDF original com pdf-lib
+// 2. Sobrepõe retângulos pretos opacos nas coordenadas das tarjas
+// 3. Salva o PDF resultante — o texto original é preservado onde não há tarja
+//
+// Limitação conhecida: o texto *sob* as tarjas permanece no arquivo PDF
+// mas fica visualmente coberto. Para anonimização completa (remoção do texto
+// da estrutura do PDF), seria necessário redaction via API server-side.
+// Esta abordagem é significativamente mais segura que JPEG por:
+//   a) não destruir o texto não-tarjado
+//   b) não introduzir artefatos JPEG que podem tornar tarjas parcialmente legíveis
+// ================================================================
+
+UI.btnExport.onclick = async () => {
+    if (historicoTarjas.length === 0) {
+        toast('Nenhuma tarja para aplicar. Faça marcações antes de exportar.', 'error');
+        return;
+    }
+
+    setUIEnabled(false);
+    UI.progressContainer.style.display = 'block';
+    setStatus('Gerando PDF anonimizado com pdf-lib...');
+
+    try {
+        const { PDFDocument, rgb } = PDFLib;
+
+        // Carrega o PDF original
+        const pdfDoc = await PDFDocument.load(state.pdfBytes.slice(0));
+        const pages  = pdfDoc.getPages();
+
+        const total = pages.length;
+        pages.forEach((page, i) => {
+            UI.progressBar.style.width = `${((i + 1) / total) * 100}%`;
+
+            const { width: pdfW, height: pdfH } = page.getSize();
+            const pageData = state.pagesData[i];
+            if (!pageData) return;
+
+            const canvasW = pageData.canvas.width;
+            const canvasH = pageData.canvas.height;
+
+            const scaleX = pdfW / canvasW;
+            const scaleY = pdfH / canvasH;
+
+            // Para cada tarja nesta página, desenha retângulo preto
+            pageData.layer.querySelectorAll('.tarja:not(.drawing)').forEach(t => {
+                const x = parseFloat(t.style.left);
+                const y = parseFloat(t.style.top);
+                const w = parseFloat(t.style.width);
+                const h = parseFloat(t.style.height);
+
+                // Converte coordenadas do canvas (origem top-left)
+                // para coordenadas do PDF (origem bottom-left)
+                const pdfX =  x * scaleX;
+                const pdfY =  pdfH - (y * scaleY) - (h * scaleY);
+                const pdfW_ = w * scaleX;
+                const pdfH_ = h * scaleY;
+
+                page.drawRectangle({
+                    x: pdfX,
+                    y: pdfY,
+                    width:  pdfW_,
+                    height: pdfH_,
+                    color: rgb(0, 0, 0),
+                    opacity: 1,
                 });
             });
-            UI.sysStatusText.textContent = `Busca concluída: ${totalEncontrado} ocorrência(s) tarjada(s).`;
-            UI.inputSearch.value = ''; 
-        }
-
-        // --- INGESTÃO DE ARQUIVO ---
-        let dragCounter = 0;
-        window.addEventListener('dragover', e => e.preventDefault());
-        window.addEventListener('dragenter', e => { e.preventDefault(); dragCounter++; UI.dragOverlay.style.display = 'flex'; });
-        window.addEventListener('dragleave', e => { e.preventDefault(); dragCounter--; if (dragCounter === 0) UI.dragOverlay.style.display = 'none'; });
-        window.addEventListener('drop', e => {
-            e.preventDefault(); dragCounter = 0; UI.dragOverlay.style.display = 'none';
-            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) iniciarProcessamento(e.dataTransfer.files[0]);
         });
-        UI.fileInput.onchange = e => { if (e.target.files[0]) iniciarProcessamento(e.target.files[0]); };
 
-        async function iniciarProcessamento(file) {
-            if (file.type !== 'application/pdf') return;
-            
-            state.pdfDoc = null; state.pagesData = []; state.cancelRequested = false;
-            UI.viewer.innerHTML = ''; UI.fileInput.value = ''; UI.inputSearch.value = '';
-            limparHistorico();
-            
-            UI.sysStatusText.textContent = "Lendo estrutura do PDF...";
-            const buffer = await file.arrayBuffer();
-            state.pdfDoc = await pdfjsLib.getDocument({ data: buffer }).promise;
-            for (let i = 1; i <= state.pdfDoc.numPages; i++) await buildPageContainer(i);
-            
-            state.cancelRequested = false; state.isProcessing = true;
-            UI.btnCancel.style.display = 'flex'; setUIState(false); 
-            processNextPage(0); 
+        const pdfBytes = await pdfDoc.save();
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const url  = URL.createObjectURL(blob);
+        const a    = el('a', { href: url, download: `Anonimizado_${isoNow()}.pdf` });
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        setStatus('PDF anonimizado exportado com sucesso.');
+        toast('PDF exportado com sucesso!', 'success');
+
+    } catch (err) {
+        console.error('Erro na exportação:', err);
+        toast('Erro ao exportar o PDF. Verifique o console.', 'error');
+        setStatus('Erro na exportação.');
+    } finally {
+        setTimeout(() => {
+            UI.progressContainer.style.display = 'none';
+            UI.progressBar.style.width = '0%';
+        }, 1500);
+        setUIEnabled(true);
+    }
+};
+
+// ================================================================
+// ATALHOS DE TECLADO
+// ================================================================
+
+document.addEventListener('keydown', e => {
+    const tag = document.activeElement?.tagName;
+    const emInput = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+
+    // Esc: fecha modais ou cancela
+    if (e.key === 'Escape') {
+        if (UI.modalExcecoes.classList.contains('open')) { fecharModal(UI.modalExcecoes); return; }
+        if (UI.modalAtalhos.classList.contains('open'))  { fecharModal(UI.modalAtalhos);  return; }
+        if (state.isProcessing) { UI.btnCancel.click(); return; }
+    }
+
+    if (emInput) return; // Não captura atalhos quando em campo de texto
+
+    // Ctrl + tecla
+    if (e.ctrlKey || e.metaKey) {
+        switch (e.key.toLowerCase()) {
+            case 'o': e.preventDefault(); UI.fileInput.click(); break;
+            case 's': e.preventDefault(); UI.btnExportProjeto.click(); break;
+            case 'e': e.preventDefault(); UI.btnExport.click(); break;
+            case 'z': e.preventDefault(); desfazerUltima(); break;
+            case 'delete': e.preventDefault(); UI.btnClearTarjas.click(); break;
         }
+        return;
+    }
 
-        // --- CONTROLE DE UI ---
-        function setUIState(enabled) {
-            UI.btnView.disabled = !enabled; UI.btnDraw.disabled = !enabled;
-            UI.btnZoomIn.disabled = !enabled; UI.btnZoomOut.disabled = !enabled;
-            UI.btnExport.disabled = !enabled; UI.btnClearDoc.disabled = !enabled;
-            UI.btnClearTarjas.disabled = !enabled;
-            UI.inputSearch.disabled = !enabled; UI.btnSearch.disabled = !enabled;
-            UI.btnExportRascunho.disabled = !enabled; UI.fileImportRascunho.disabled = !enabled;
-            
-            if (enabled) UI.lblImportRascunho.classList.remove('disabled');
-            else UI.lblImportRascunho.classList.add('disabled');
-        }
+    // Teclas sem Ctrl
+    switch (e.key) {
+        case 'v': case 'V': if (!UI.btnView.disabled) setMode('view'); break;
+        case 'd': case 'D': if (!UI.btnDraw.disabled) setMode('draw'); break;
+        case '+': case '=': if (!UI.btnZoomIn.disabled)  alterarZoom(+0.2); break;
+        case '-': case '_': if (!UI.btnZoomOut.disabled) alterarZoom(-0.2); break;
+    }
+});
 
-        UI.btnView.onclick = () => setMode('view');
-        UI.btnDraw.onclick = () => setMode('draw');
-        function setMode(m) {
-            state.mode = m; UI.btnView.classList.toggle('active', m === 'view'); UI.btnDraw.classList.toggle('active', m === 'draw');
-            state.pagesData.forEach(p => { if(p.layer) p.layer.classList.toggle('draw-mode', m === 'draw'); });
-        }
+// ================================================================
+// BOTÃO DESFAZER
+// ================================================================
+UI.btnUndo.onclick = () => desfazerUltima();
 
-        UI.btnClearDoc.onclick = () => {
-            state.pdfDoc = null; state.pagesData = []; state.cancelRequested = false;
-            UI.viewer.innerHTML = ''; UI.fileInput.value = ''; UI.inputSearch.value = '';
-            limparHistorico();
-            UI.viewer.appendChild(UI.welcomeMsg); UI.sysStatusText.textContent = "Sistema Ocioso.";
-            setUIState(false);
-        };
+// ================================================================
+// INIT
+// ================================================================
 
-        UI.btnClearTarjas.onclick = () => {
-            if(confirm("Tem certeza que deseja remover TODAS as tarjas visíveis neste documento?")) {
-                state.pagesData.forEach(p => p.layer.innerHTML = '');
-                limparHistorico();
-                UI.sysStatusText.textContent = "Todas as tarjas foram removidas da tela.";
-            }
-        };
-
-        UI.btnCancel.onclick = () => {
-            if (state.isProcessing) {
-                state.cancelRequested = true; state.isProcessing = false;
-                state.pagesData.forEach(p => p.container.classList.remove('processing'));
-                UI.btnCancel.style.display = 'none'; UI.sysStatusText.textContent = "Processamento Cancelado.";
-                setUIState(true); 
-            }
-        };
-
-        async function buildPageContainer(num) {
-            const page = await state.pdfDoc.getPage(num);
-            const viewport = page.getViewport({ scale: state.scale });
-            const container = document.createElement('div');
-            container.className = 'page-container processing'; 
-            container.style.width = viewport.width + 'px'; container.style.height = viewport.height + 'px';
-            container.innerHTML = `<canvas width="${viewport.width}" height="${viewport.height}"></canvas><div class="interaction-layer"></div><div class="page-loader"><div class="spinner"></div><div style="margin-top:15px; color:white;">Analisando Padrões...</div></div>`;
-            UI.viewer.appendChild(container);
-            const canvas = container.querySelector('canvas'), ctx = canvas.getContext('2d'), layer = container.querySelector('.interaction-layer');
-            state.pagesData.push({ num, viewport, container, canvas, ctx, layer, textItems: null });
-            await page.render({ canvasContext: ctx, viewport }).promise;
-            state.pagesData[num-1].textItems = (await page.getTextContent()).items;
-            setupManualDrawing(layer, num-1);
-        }
-
-        function processNextPage(index) {
-            if (state.cancelRequested) return;
-            if (index >= state.pagesData.length) {
-                state.isProcessing = false; UI.btnCancel.style.display = 'none';
-                UI.sysStatusText.textContent = `Detecção Automática Concluída. Revise o documento.`;
-                setUIState(true); return;
-            }
-            applyRegexResults(index);
-            setTimeout(() => processNextPage(index + 1), 5);
-        }
-
-        function applyRegexResults(pageIndex) {
-            const pageData = state.pagesData[pageIndex];
-            pageData.textItems.forEach(item => {
-                const text = item.str;
-                if (!text.trim()) return;
-
-                const tx = pdfjsLib.Util.transform(pageData.viewport.transform, item.transform);
-                const totalWidth = item.width * pageData.viewport.scale, height = item.height || Math.abs(tx[3]), offsetY = height * 0.85;
-
-                for (const key in PATTERNS) {
-                    const matches = [...text.matchAll(PATTERNS[key])];
-                    for (const match of matches) {
-                        const matchText = match[0];
-                        if (key === 'NomesCompostos' || key === 'NomesMaiusculos') {
-                            const palavras = matchText.toUpperCase().replace(/[.,]/g, '').split(/\s+/);
-                            if (palavras.some(p => TERMOS_IGNORADOS.has(p))) continue; 
-                        }
-                        const startX = tx[4] + (totalWidth * (match.index / text.length)), tarjaWidth = totalWidth * (matchText.length / text.length);
-                        
-                        addTarja(pageData.layer, startX, tx[5] - offsetY, tarjaWidth, height, 'regex', pageIndex, matchText);
-                    }
-                }
-            });
-            pageData.container.classList.remove('processing');
-        }
-
-        function addTarja(layer, x, y, w, h, type, pageIndex, termo = null) {
-            const padX = 8, padY = 6, t = document.createElement('div');
-            const tarjaId = Date.now().toString() + Math.random().toString(36).substr(2, 5); 
-            
-            t.className = `tarja ${type}`; 
-            t.dataset.id = tarjaId;
-            t.style.left = (x - padX) + 'px'; t.style.top = (y - padY) + 'px';
-            t.style.width = (w + (padX * 2)) + 'px'; t.style.height = (h + (padY * 2)) + 'px';
-            
-            const del = document.createElement('div');
-            del.className = 'tarja-remove'; del.textContent = '×';
-            del.onmousedown = e => e.stopPropagation(); 
-            del.onclick = e => { 
-                e.stopPropagation(); 
-                removerRegistroArrayEDOM(tarjaId); 
-                t.remove(); 
-            };
-            
-            t.appendChild(del); layer.appendChild(t);
-            
-            const normX = x / state.scale, normY = y / state.scale, normW = w / state.scale, normH = h / state.scale;
-            registrarNoHistorico(tarjaId, type, pageIndex, w, h, termo, normX, normY, normW, normH);
-            return tarjaId;
-        }
-
-        function addTarjaFromImport(layer, x, y, w, h, type, pageIndex, termo, id, rawObject) {
-            const padX = 8, padY = 6, t = document.createElement('div');
-            
-            t.className = `tarja ${type}`; 
-            t.dataset.id = id;
-            t.style.left = (x - padX) + 'px'; t.style.top = (y - padY) + 'px';
-            t.style.width = (w + (padX * 2)) + 'px'; t.style.height = (h + (padY * 2)) + 'px';
-            
-            const del = document.createElement('div');
-            del.className = 'tarja-remove'; del.textContent = '×';
-            del.onmousedown = e => e.stopPropagation(); 
-            del.onclick = e => { 
-                e.stopPropagation(); 
-                removerRegistroArrayEDOM(id); 
-                t.remove(); 
-            };
-            
-            t.appendChild(del); layer.appendChild(t);
-            
-            historicoTarjas.push(rawObject);
-            renderizarSidebarHistorico();
-            atualizarContador();
-        }
-
-        function setupManualDrawing(layer, pageIndex) {
-            layer.onmousedown = (e) => {
-                if (state.mode !== 'draw') return; state.isDrawing = true;
-                const r = layer.getBoundingClientRect(); state.startX = e.clientX - r.left; state.startY = e.clientY - r.top;
-                state.currentTarja = document.createElement('div'); state.currentTarja.className = 'tarja drawing';
-                state.currentTarja.style.left = state.startX + 'px'; state.currentTarja.style.top = state.startY + 'px';
-                layer.appendChild(state.currentTarja);
-            };
-            layer.onmousemove = (e) => {
-                if (!state.isDrawing) return;
-                const r = layer.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
-                state.currentTarja.style.width = Math.abs(x - state.startX) + 'px'; state.currentTarja.style.height = Math.abs(y - state.startY) + 'px';
-                state.currentTarja.style.left = Math.min(x, state.startX) + 'px'; state.currentTarja.style.top = Math.min(y, state.startY) + 'px';
-            };
-            layer.onmouseup = () => {
-                if (!state.isDrawing) return; state.isDrawing = false;
-                const finalW = parseFloat(state.currentTarja.style.width || 0), finalH = parseFloat(state.currentTarja.style.height || 0);
-                const finalX = parseFloat(state.currentTarja.style.left || 0), finalY = parseFloat(state.currentTarja.style.top || 0);
-                
-                if (finalW > 5 && finalH > 5) {
-                    const tarjaId = Date.now().toString() + Math.random().toString(36).substr(2, 5);
-                    state.currentTarja.className = 'tarja manual';
-                    state.currentTarja.dataset.id = tarjaId;
-                    
-                    const del = document.createElement('div'); del.className = 'tarja-remove'; del.textContent = '×';
-                    del.onmousedown = e => e.stopPropagation(); 
-                    del.onclick = e => { e.stopPropagation(); removerRegistroArrayEDOM(tarjaId); e.target.parentElement.remove(); };
-                    state.currentTarja.appendChild(del);
-
-                    const rawX = finalX + 8, rawY = finalY + 6;
-                    const normX = rawX / state.scale, normY = rawY / state.scale, normW = finalW / state.scale, normH = finalH / state.scale;
-                    registrarNoHistorico(tarjaId, 'manual', pageIndex, finalW, finalH, null, normX, normY, normW, normH);
-                } else {
-                    state.currentTarja.remove();
-                }
-                state.currentTarja = null;
-            };
-        }
-
-        UI.btnZoomIn.onclick = () => changeZoom(0.2);
-        UI.btnZoomOut.onclick = () => changeZoom(-0.2);
-        
-        async function changeZoom(delta) {
-            const newScale = state.scale + delta; if (newScale < 0.8 || newScale > 3.0) return;
-            state.scale = newScale; UI.sysStatusText.textContent = `Ajustando zoom...`;
-            
-            const bkpData = JSON.parse(JSON.stringify(historicoTarjas));
-            historicoTarjas = []; 
-            
-            for (let i = 0; i < state.pagesData.length; i++) {
-                const p = state.pagesData[i], page = await state.pdfDoc.getPage(p.num);
-                p.viewport = page.getViewport({ scale: state.scale });
-                p.container.style.width = p.viewport.width + 'px'; p.container.style.height = p.viewport.height + 'px';
-                p.canvas.width = p.viewport.width; p.canvas.height = p.viewport.height;
-                await page.render({ canvasContext: p.ctx, viewport: p.viewport }).promise;
-                p.layer.innerHTML = ''; 
-                
-                bkpData.filter(t => t.pagina - 1 === i).forEach(tarja => {
-                    const realX = tarja.nx * state.scale, realY = tarja.ny * state.scale, realW = tarja.nw * state.scale, realH = tarja.nh * state.scale;
-                    addTarjaFromImport(p.layer, realX, realY, realW, realH, tarja.type, i, tarja.termo, tarja.id, tarja);
-                });
-            }
-            UI.sysStatusText.textContent = `Zoom ajustado para ${state.scale.toFixed(1)}x. Todas as tarjas foram preservadas.`;
-        }
-
-        // --- EXPORTAÇÃO SEGURA (Canvas Buffer Fix) ---
-        UI.btnExport.onclick = async () => {
-            setUIState(false); document.getElementById('progress-container').style.display = 'block';
-            const doc = new window.jspdf.jsPDF('p', 'pt', 'a4'), total = state.pagesData.length;
-            
-            for (let i = 0; i < total; i++) {
-                const p = state.pagesData[i];
-                UI.sysStatusText.textContent = `Rasterizando página ${i + 1} de ${total}...`;
-                document.getElementById('progress-bar').style.width = `${((i + 1) / total) * 100}%`;
-                await new Promise(r => setTimeout(r, 15)); 
-                
-                // BACKUP: Salva os pixels originais da página
-                const backupPixels = p.ctx.getImageData(0, 0, p.canvas.width, p.canvas.height);
-
-                // PINTURA: Aplica as tarjas pretas definitivas no canvas
-                p.layer.querySelectorAll('.tarja').forEach(t => {
-                    p.ctx.fillStyle = 'black'; 
-                    p.ctx.fillRect(parseFloat(t.style.left), parseFloat(t.style.top), parseFloat(t.style.width), parseFloat(t.style.height));
-                });
-
-                // EXPORTAÇÃO
-                const img = p.canvas.toDataURL('image/jpeg', 0.85), pw = doc.internal.pageSize.getWidth(), ph = (p.canvas.height * pw) / p.canvas.width;
-                if (i > 0) doc.addPage();
-                doc.addImage(img, 'JPEG', 0, 0, pw, ph);
-
-                // RESTAURAÇÃO: Devolve os pixels originais ao canvas do usuário
-                p.ctx.putImageData(backupPixels, 0, 0);
-            }
-            
-            doc.save('documento_final_anonimizado.pdf');
-            UI.sysStatusText.textContent = "Download seguro concluído com sucesso.";
-            setTimeout(() => { document.getElementById('progress-container').style.display = 'none'; document.getElementById('progress-bar').style.width = '0%'; }, 2000);
-            setUIState(true);
-        };
-    </script>
+carregarTema();
+carregarExcecoes();
+setUIEnabled(false);
+</script>
 </body>
 </html>
