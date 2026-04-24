@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ater - Anonimizador de Documentos</title>
+    <title>Ater - Anonimização de documentos</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1e1e1e; margin: 0; display: flex; flex-direction: column; height: 100vh; color: #f0f0f0; overflow: hidden; }
@@ -38,7 +38,7 @@
         .main-wrapper { display: flex; flex-grow: 1; overflow: hidden; position: relative; }
         #viewer-container { flex-grow: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; gap: 40px; background: #2d2d2d; position: relative; }
         
-        /* Sidebar Histórico Melhorado */
+        /* Sidebar Histórico */
         #sidebar-historico { width: 300px; min-width: 300px; background: #1a1a1a; border-left: 1px solid #333; display: flex; flex-direction: column; z-index: 90; }
         .sidebar-header { padding: 12px 15px; background: #111; border-bottom: 1px solid #333; font-weight: bold; color: #007bff; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
         .badge-count { background: #333; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 11px; }
@@ -119,7 +119,7 @@
     </div>
 
     <div class="toolbar">
-        <h1>ATER V17</h1>
+        <h1>ATER V19</h1>
         
         <label class="file-label" id="lbl-file" title="Abra o PDF Original primeiro">1. Abrir PDF <input type="file" id="file-input" accept="application/pdf" /></label>
         <button id="btn-clear-doc" class="btn" title="Descarregar PDF" disabled>🗑️ Fechar</button>
@@ -154,7 +154,7 @@
     <div class="main-wrapper">
         <div id="viewer-container">
             <div id="welcome-msg" style="text-align: center; margin-top: 100px; color: #666; max-width: 500px;">
-                <h2>Workflow Ater V17</h2>
+                <h2>Workflow Seguro Ater V19</h2>
                 <p><strong>Arraste um PDF Original</strong> para iniciar a edição ou revisão.</p>
                 <div style="text-align: left; background: #222; padding: 15px; border-radius: 8px; margin-top: 20px; font-size: 13px;">
                     <p style="margin-top: 0; color: #007bff; font-weight: bold;">Como funciona a Revisão em Dupla?</p>
@@ -186,6 +186,15 @@
 
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        // --- FUNÇÃO DE SEGURANÇA (XSS) ---
+        function sanitizarHTML(str) {
+            if (!str) return null;
+            return String(str).replace(/[&<>"']/g, function(match) {
+                const escapeMap = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+                return escapeMap[match];
+            });
+        }
 
         const PATTERNS = {
             CPF: /\b\d{3}\.\d{3}\.\d{3}-\d{2}\b|\b\d{11}\b/g,
@@ -244,7 +253,9 @@
         }
         function salvarExcecoes() { localStorage.setItem('ater_excecoes', JSON.stringify([...TERMOS_IGNORADOS])); renderizarChips(); }
         function adicionarTermo(texto) {
-            const formatado = texto.trim().toUpperCase().replace(/[.,]/g, '');
+            let formatado = texto.trim().toUpperCase().replace(/[.,]/g, '');
+            formatado = sanitizarHTML(formatado); // Proteção XSS
+            
             if (formatado && !TERMOS_IGNORADOS.has(formatado)) { TERMOS_IGNORADOS.add(formatado); salvarExcecoes(); }
             UI.inputTermo.value = '';
         }
@@ -266,8 +277,17 @@
         // --- SISTEMA DE METADADOS & SIDEBAR ---
         function registrarNoHistorico(id, type, pageIndex, w, h, termo, normX, normY, normW, normH) {
             if (historicoTarjas.some(t => t.id === id)) return; 
+            
             const hora = new Date().toLocaleTimeString('pt-BR');
-            const registro = { id, type, pagina: pageIndex + 1, width: Math.round(w), height: Math.round(h), hora, termo, nx: normX, ny: normY, nw: normW, nh: normH };
+            const termoSeguro = sanitizarHTML(termo); // Proteção XSS
+            
+            const registro = { 
+                id, type, pagina: pageIndex + 1, 
+                width: Math.round(w), height: Math.round(h), 
+                hora, termo: termoSeguro, 
+                nx: normX, ny: normY, nw: normW, nh: normH 
+            };
+            
             historicoTarjas.push(registro);
             renderizarSidebarHistorico();
             atualizarContador();
@@ -413,7 +433,6 @@
         async function iniciarProcessamento(file) {
             if (file.type !== 'application/pdf') return;
             
-            // Clear current document state explicitly without clicking button
             state.pdfDoc = null; state.pagesData = []; state.cancelRequested = false;
             UI.viewer.innerHTML = ''; UI.fileInput.value = ''; UI.inputSearch.value = '';
             limparHistorico();
@@ -435,15 +454,10 @@
             UI.btnExport.disabled = !enabled; UI.btnClearDoc.disabled = !enabled;
             UI.btnClearTarjas.disabled = !enabled;
             UI.inputSearch.disabled = !enabled; UI.btnSearch.disabled = !enabled;
+            UI.btnExportRascunho.disabled = !enabled; UI.fileImportRascunho.disabled = !enabled;
             
-            UI.btnExportRascunho.disabled = !enabled;
-            UI.fileImportRascunho.disabled = !enabled;
-            
-            if (enabled) {
-                UI.lblImportRascunho.classList.remove('disabled');
-            } else {
-                UI.lblImportRascunho.classList.add('disabled');
-            }
+            if (enabled) UI.lblImportRascunho.classList.remove('disabled');
+            else UI.lblImportRascunho.classList.add('disabled');
         }
 
         UI.btnView.onclick = () => setMode('view');
@@ -550,11 +564,7 @@
             
             t.appendChild(del); layer.appendChild(t);
             
-            const normX = x / state.scale;
-            const normY = y / state.scale;
-            const normW = w / state.scale;
-            const normH = h / state.scale;
-
+            const normX = x / state.scale, normY = y / state.scale, normW = w / state.scale, normH = h / state.scale;
             registrarNoHistorico(tarjaId, type, pageIndex, w, h, termo, normX, normY, normW, normH);
             return tarjaId;
         }
@@ -599,10 +609,8 @@
             };
             layer.onmouseup = () => {
                 if (!state.isDrawing) return; state.isDrawing = false;
-                const finalW = parseFloat(state.currentTarja.style.width || 0);
-                const finalH = parseFloat(state.currentTarja.style.height || 0);
-                const finalX = parseFloat(state.currentTarja.style.left || 0);
-                const finalY = parseFloat(state.currentTarja.style.top || 0);
+                const finalW = parseFloat(state.currentTarja.style.width || 0), finalH = parseFloat(state.currentTarja.style.height || 0);
+                const finalX = parseFloat(state.currentTarja.style.left || 0), finalY = parseFloat(state.currentTarja.style.top || 0);
                 
                 if (finalW > 5 && finalH > 5) {
                     const tarjaId = Date.now().toString() + Math.random().toString(36).substr(2, 5);
@@ -611,20 +619,11 @@
                     
                     const del = document.createElement('div'); del.className = 'tarja-remove'; del.textContent = '×';
                     del.onmousedown = e => e.stopPropagation(); 
-                    del.onclick = e => { 
-                        e.stopPropagation(); 
-                        removerRegistroArrayEDOM(tarjaId); 
-                        e.target.parentElement.remove(); 
-                    };
+                    del.onclick = e => { e.stopPropagation(); removerRegistroArrayEDOM(tarjaId); e.target.parentElement.remove(); };
                     state.currentTarja.appendChild(del);
 
-                    const rawX = finalX + 8;
-                    const rawY = finalY + 6;
-                    const normX = rawX / state.scale;
-                    const normY = rawY / state.scale;
-                    const normW = finalW / state.scale;
-                    const normH = finalH / state.scale;
-
+                    const rawX = finalX + 8, rawY = finalY + 6;
+                    const normX = rawX / state.scale, normY = rawY / state.scale, normW = finalW / state.scale, normH = finalH / state.scale;
                     registrarNoHistorico(tarjaId, 'manual', pageIndex, finalW, finalH, null, normX, normY, normW, normH);
                 } else {
                     state.currentTarja.remove();
@@ -659,22 +658,35 @@
             UI.sysStatusText.textContent = `Zoom ajustado para ${state.scale.toFixed(1)}x. Todas as tarjas foram preservadas.`;
         }
 
+        // --- EXPORTAÇÃO SEGURA (Canvas Buffer Fix) ---
         UI.btnExport.onclick = async () => {
             setUIState(false); document.getElementById('progress-container').style.display = 'block';
             const doc = new window.jspdf.jsPDF('p', 'pt', 'a4'), total = state.pagesData.length;
+            
             for (let i = 0; i < total; i++) {
                 const p = state.pagesData[i];
                 UI.sysStatusText.textContent = `Rasterizando página ${i + 1} de ${total}...`;
                 document.getElementById('progress-bar').style.width = `${((i + 1) / total) * 100}%`;
                 await new Promise(r => setTimeout(r, 15)); 
+                
+                // BACKUP: Salva os pixels originais da página
+                const backupPixels = p.ctx.getImageData(0, 0, p.canvas.width, p.canvas.height);
+
+                // PINTURA: Aplica as tarjas pretas definitivas no canvas
                 p.layer.querySelectorAll('.tarja').forEach(t => {
                     p.ctx.fillStyle = 'black'; 
                     p.ctx.fillRect(parseFloat(t.style.left), parseFloat(t.style.top), parseFloat(t.style.width), parseFloat(t.style.height));
                 });
+
+                // EXPORTAÇÃO
                 const img = p.canvas.toDataURL('image/jpeg', 0.85), pw = doc.internal.pageSize.getWidth(), ph = (p.canvas.height * pw) / p.canvas.width;
                 if (i > 0) doc.addPage();
                 doc.addImage(img, 'JPEG', 0, 0, pw, ph);
+
+                // RESTAURAÇÃO: Devolve os pixels originais ao canvas do usuário
+                p.ctx.putImageData(backupPixels, 0, 0);
             }
+            
             doc.save('documento_final_anonimizado.pdf');
             UI.sysStatusText.textContent = "Download seguro concluído com sucesso.";
             setTimeout(() => { document.getElementById('progress-container').style.display = 'none'; document.getElementById('progress-bar').style.width = '0%'; }, 2000);
