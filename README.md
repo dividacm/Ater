@@ -24,7 +24,7 @@
 
 Por ser um único arquivo HTML autocontido, não há instalação:
 
-1. Baixe o arquivo `index.html`
+1. Baixe o arquivo `ater_v20.html`
 2. Abra no navegador (Chrome ou Edge recomendados)
 3. Arraste um PDF ou clique em **Abrir PDF**
 
@@ -156,4 +156,25 @@ Contribuições são bem-vindas. Abra uma issue descrevendo o problema ou a melh
 
 ## Licença
 
-MIT — livre para uso, modificação e distribuição.
+Este projeto adota o modelo **dual-license**:
+
+### Uso gratuito — AGPL v3
+
+Uso pessoal, acadêmico e por órgãos públicos é gratuito sob os termos da [GNU Affero General Public License v3.0](https://www.gnu.org/licenses/agpl-3.0.html).
+
+A AGPL exige que qualquer modificação ou software derivado também seja publicado sob a mesma licença. Isso significa que **empresas não podem incorporar, modificar ou redistribuir o ATER em produtos fechados** sem adquirir uma licença comercial.
+
+### Uso comercial — Licença Comercial
+
+Para empresas que precisam de qualquer um dos seguintes:
+
+- Integrar o ATER em um produto ou serviço comercial
+- Modificar o código sem obrigação de publicar as alterações
+- Redistribuir ou sublicenciar
+- Uso interno corporativo sem restrições da AGPL
+
+Entre em contato para adquirir uma licença comercial: **[mariosouzadealencar@gmail,com]**
+
+---
+
+> **Resumo prático:** se você é um órgão público, pesquisador ou usuário individual, pode usar livremente. Se você é uma empresa e quer usar sem as obrigações da AGPL, fale conosco.
