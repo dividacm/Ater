@@ -5,52 +5,100 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ater - Anonimização de documentos</title>
     <style>
+        /* --- VARIÁVEIS DE TEMA --- */
+        :root {
+            --bg-body: #1e1e1e;
+            --bg-toolbar: #111111;
+            --bg-panel: #2d2d2d;
+            --bg-sidebar: #1a1a1a;
+            --bg-item: #2a2a2a;
+            --text-main: #f0f0f0;
+            --text-muted: #aaaaaa;
+            --border: #333333;
+        }
+
+        [data-theme="claro"] {
+            --bg-body: #f4f4f9;
+            --bg-toolbar: #ffffff;
+            --bg-panel: #e0e0e0;
+            --bg-sidebar: #f8f9fa;
+            --bg-item: #ffffff;
+            --text-main: #222222;
+            --text-muted: #666666;
+            --border: #cccccc;
+        }
+
+        [data-theme="sepia"] {
+            --bg-body: #f4ecd8;
+            --bg-toolbar: #e4d9c0;
+            --bg-panel: #d5c8a0;
+            --bg-sidebar: #eee8d5;
+            --bg-item: #fdf6e3;
+            --text-main: #4a4036;
+            --text-muted: #7a6e60;
+            --border: #d0c5a8;
+        }
+
+        [data-theme="verde-amarelo"] {
+            --bg-body: #009c3b; /* Verde Bandeira */
+            --bg-toolbar: #009c3b; /* Azul Bandeira */
+            --bg-panel: #e6c800; /* Fundo mais escuro para destacar o branco do PDF */
+            --bg-sidebar: #008532;
+            --bg-item: #ffdf00; /* Amarelo Bandeira */
+            --text-main: #002776;
+            --text-muted: #e0e0e0;
+            --border: #002776;
+        }
+
+        /* --- ESTILOS GERAIS --- */
         * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1e1e1e; margin: 0; display: flex; flex-direction: column; height: 100vh; color: #f0f0f0; overflow: hidden; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-body); margin: 0; display: flex; flex-direction: column; height: 100vh; color: var(--text-main); overflow: hidden; transition: background 0.3s, color 0.3s; }
         
-        .toolbar { background: #111; padding: 10px 20px; display: flex; gap: 8px; align-items: center; border-bottom: 1px solid #333; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.5); flex-wrap: wrap; flex-shrink: 0; }
+        .toolbar { background: var(--bg-toolbar); padding: 10px 20px; display: flex; gap: 8px; align-items: center; border-bottom: 1px solid var(--border); z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.5); flex-wrap: wrap; flex-shrink: 0; transition: background 0.3s; }
         .toolbar h1 { margin: 0 10px 0 0; font-size: 1.1rem; color: #007bff; letter-spacing: 1px; }
         
-        .btn { background: #333; color: white; border: 1px solid #444; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
-        .btn:hover:not(:disabled) { background: #444; }
+        .btn { background: var(--bg-item); color: var(--text-main); border: 1px solid var(--border); padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
+        .btn:hover:not(:disabled) { filter: brightness(1.2); }
         .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .btn.active { background: #007bff; border-color: #0056b3; font-weight: bold; }
-        .btn-danger { background: #dc3545; border-color: #c82333; }
-        .btn-danger:hover:not(:disabled) { background: #c82333; }
-        .btn-success { background: #28a745; border-color: #218838; }
-        .btn-info { background: #17a2b8; border-color: #117a8b; }
-        .btn-info:hover:not(:disabled) { background: #117a8b; }
-        .btn-warning { background: #ff9800; border-color: #e68a00; color: #111; font-weight: bold; }
-        .btn-warning:hover:not(:disabled) { background: #e68a00; }
+        .btn.active { background: #007bff; border-color: #0056b3; font-weight: bold; color: white; }
         
-        .divider { width: 1px; height: 24px; background: #444; margin: 0 2px; }
+        /* Cores fixas para botões de ação */
+        .btn-danger { background: #dc3545; border-color: #c82333; color: white; }
+        .btn-danger:hover:not(:disabled) { background: #c82333; filter: none; }
+        .btn-success { background: #28a745; border-color: #218838; color: white; }
+        .btn-info { background: #17a2b8; border-color: #117a8b; color: white; }
+        .btn-warning { background: #ff9800; border-color: #e68a00; color: #111; font-weight: bold; }
+        
+        .divider { width: 1px; height: 24px; background: var(--border); margin: 0 2px; }
         
         input[type="file"] { display: none; }
-        .file-label { background: #222; color: #ccc; border: 1px solid #444; padding: 6px 10px; border-radius: 3px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 5px;}
-        .file-label:hover { background: #333; }
+        .file-label { background: var(--bg-item); color: var(--text-main); border: 1px solid var(--border); padding: 6px 10px; border-radius: 3px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 5px; transition: 0.2s; }
+        .file-label:hover { filter: brightness(1.2); }
         .file-label.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
 
         .search-group { display: flex; gap: 5px; margin-left: 2px; }
-        .search-group input { background: #222; border: 1px solid #444; color: white; padding: 6px 10px; border-radius: 4px; font-size: 12px; outline: none; width: 120px; transition: 0.2s; }
+        .search-group input { background: var(--bg-item); border: 1px solid var(--border); color: var(--text-main); padding: 6px 10px; border-radius: 4px; font-size: 12px; outline: none; width: 120px; transition: 0.2s; }
         .search-group input:focus { border-color: #ff9800; }
         .search-group input:disabled { opacity: 0.4; cursor: not-allowed; }
 
+        .tema-seletor { background: var(--bg-item); color: var(--text-main); border: 1px solid var(--border); border-radius: 4px; padding: 5px; font-size: 12px; outline: none; cursor: pointer; }
+
         .main-wrapper { display: flex; flex-grow: 1; overflow: hidden; position: relative; }
-        #viewer-container { flex-grow: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; gap: 40px; background: #2d2d2d; position: relative; }
+        #viewer-container { flex-grow: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; align-items: center; gap: 40px; background: var(--bg-panel); position: relative; transition: background 0.3s; }
         
         /* Sidebar Histórico */
-        #sidebar-historico { width: 300px; min-width: 300px; background: #1a1a1a; border-left: 1px solid #333; display: flex; flex-direction: column; z-index: 90; }
-        .sidebar-header { padding: 12px 15px; background: #111; border-bottom: 1px solid #333; font-weight: bold; color: #007bff; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
-        .badge-count { background: #333; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 11px; }
+        #sidebar-historico { width: 300px; min-width: 300px; background: var(--bg-sidebar); border-left: 1px solid var(--border); display: flex; flex-direction: column; z-index: 90; transition: background 0.3s; }
+        .sidebar-header { padding: 12px 15px; background: var(--bg-toolbar); border-bottom: 1px solid var(--border); font-weight: bold; color: #007bff; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+        .badge-count { background: var(--bg-item); color: var(--text-main); padding: 2px 8px; border-radius: 10px; font-size: 11px; border: 1px solid var(--border); }
         #historico-list { flex-grow: 1; overflow-y: auto; padding: 15px 10px; display: flex; flex-direction: column; gap: 15px; }
         
-        .page-group-header { font-size: 12px; color: #aaa; border-bottom: 1px solid #333; padding-bottom: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; }
-        .historico-item { background: #2a2a2a; border-radius: 4px; padding: 8px; font-size: 11px; position: relative; border-left: 3px solid #555; display: flex; flex-direction: column; gap: 4px; margin-bottom: 5px; }
+        .page-group-header { font-size: 12px; color: var(--text-muted); border-bottom: 1px solid var(--border); padding-bottom: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; }
+        .historico-item { background: var(--bg-item); border-radius: 4px; padding: 8px; font-size: 11px; position: relative; border-left: 3px solid #555; display: flex; flex-direction: column; gap: 4px; margin-bottom: 5px; color: var(--text-main); border: 1px solid var(--border); border-left-width: 3px; }
         .historico-item.regex { border-left-color: #007bff; }
         .historico-item.custom { border-left-color: #ff9800; }
-        .historico-item.manual { border-left-color: #aaa; }
-        .historico-empty { text-align: center; color: #666; font-style: italic; padding: 20px; font-size: 12px; }
-        .hist-remove { position: absolute; top: 50%; transform: translateY(-50%); right: 5px; color: #888; cursor: pointer; font-size: 20px; line-height: 1; padding: 5px; }
+        .historico-item.manual { border-left-color: #888; }
+        .historico-empty { text-align: center; color: var(--text-muted); font-style: italic; padding: 20px; font-size: 12px; }
+        .hist-remove { position: absolute; top: 50%; transform: translateY(-50%); right: 5px; color: var(--text-muted); cursor: pointer; font-size: 20px; line-height: 1; padding: 5px; }
         .hist-remove:hover { color: #dc3545; }
 
         .page-container { position: relative; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.8); transition: transform 0.2s; }
@@ -72,29 +120,32 @@
         .tarja:hover { outline: 2px solid #ffc107; z-index: 25; }
         .tarja:hover .tarja-remove { display: block; }
 
-        #footer { background: #111; border-top: 1px solid #333; display: flex; flex-direction: column; z-index: 100; flex-shrink: 0; }
-        #progress-container { width: 100%; height: 4px; background: #222; display: none; }
+        #footer { background: var(--bg-toolbar); border-top: 1px solid var(--border); display: flex; flex-direction: column; z-index: 100; flex-shrink: 0; }
+        #progress-container { width: 100%; height: 4px; background: var(--bg-item); display: none; }
         #progress-bar { width: 0%; height: 100%; background: #007bff; transition: width 0.2s; }
-        .status-panel { padding: 8px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #aaa; }
+        .status-panel { padding: 8px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-muted); }
 
         #drag-overlay { position: fixed; inset: 0; background: rgba(0, 123, 255, 0.15); z-index: 9999; display: none; align-items: center; justify-content: center; flex-direction: column; backdrop-filter: blur(3px); pointer-events: none; }
         #drag-overlay .box { border: 4px dashed #007bff; border-radius: 20px; padding: 50px 100px; text-align: center; background: rgba(30, 30, 30, 0.9); box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
         #drag-overlay h2 { color: #007bff; margin: 0 0 10px 0; font-size: 2rem; }
 
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 10000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
-        .modal-content { background: #1e1e1e; border: 1px solid #333; border-radius: 8px; width: 500px; max-width: 90%; padding: 25px; box-shadow: 0 15px 40px rgba(0,0,0,0.7); display: flex; flex-direction: column; gap: 15px; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .modal-content { background: var(--bg-sidebar); border: 1px solid var(--border); border-radius: 8px; width: 500px; max-width: 90%; padding: 25px; box-shadow: 0 15px 40px rgba(0,0,0,0.7); display: flex; flex-direction: column; gap: 15px; color: var(--text-main); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
         .modal-header h2 { margin: 0; font-size: 1.2rem; color: #007bff; }
-        .btn-close { background: none; border: none; color: #aaa; font-size: 1.5rem; cursor: pointer; }
-        .btn-close:hover { color: white; }
+        .btn-close { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+        .btn-close:hover { color: #dc3545; }
         
         .input-group { display: flex; gap: 10px; }
-        .input-group input { flex-grow: 1; background: #2a2a2a; border: 1px solid #444; color: white; padding: 8px 12px; border-radius: 4px; outline: none; font-size: 14px; }
+        .input-group input { flex-grow: 1; background: var(--bg-item); border: 1px solid var(--border); color: var(--text-main); padding: 8px 12px; border-radius: 4px; outline: none; font-size: 14px; }
         .input-group input:focus { border-color: #007bff; }
         .chip-container { display: flex; flex-wrap: wrap; gap: 8px; max-height: 250px; overflow-y: auto; padding: 10px 0; align-content: flex-start; }
-        .chip { background: #333; border: 1px solid #444; padding: 4px 10px; border-radius: 15px; font-size: 11px; display: flex; align-items: center; gap: 8px; color: #ddd; }
+        .chip { background: var(--bg-item); border: 1px solid var(--border); padding: 4px 10px; border-radius: 15px; font-size: 11px; display: flex; align-items: center; gap: 8px; color: var(--text-main); }
         .chip-remove { cursor: pointer; color: #dc3545; font-weight: bold; }
         .chip-remove:hover { color: #ff6b6b; }
+        
+        #welcome-msg { text-align: center; margin-top: 100px; color: var(--text-muted); max-width: 500px; }
+        #welcome-msg .instrucoes-box { text-align: left; background: var(--bg-item); padding: 15px; border-radius: 8px; margin-top: 20px; font-size: 13px; border: 1px solid var(--border); }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -109,7 +160,7 @@
                 <h2>⚙️ Dicionário de Exceções</h2>
                 <button class="btn-close" onclick="document.getElementById('modal-excecoes').style.display = 'none'">×</button>
             </div>
-            <p style="font-size: 12px; color: #888; margin: 0;">Palavras nesta lista serão ignoradas pelas tarjas automáticas.</p>
+            <p style="font-size: 12px; color: var(--text-muted); margin: 0;">Palavras nesta lista serão ignoradas pelas tarjas automáticas.</p>
             <div class="input-group">
                 <input type="text" id="input-termo" placeholder="Digite uma palavra (ex: SECRETARIA)" autocomplete="off">
                 <button class="btn btn-success" id="btn-add-termo">Adicionar</button>
@@ -147,18 +198,27 @@
 
         <div class="divider" style="margin-left: auto;"></div>
         
+        <select id="tema-seletor" class="tema-seletor" title="Escolha um tema visual">
+            <option value="escuro">Tema Escuro</option>
+            <option value="claro">Tema Claro</option>
+            <option value="sepia">Tema Sépia</option>
+            <option value="verde-amarelo">Tema Verde Amarelo</option>
+        </select>
+        
+        <div class="divider"></div>
+        
         <button id="btn-cancel" class="btn btn-danger" style="display: none;">🛑 Cancelar</button>
         <button id="btn-export" class="btn btn-success" disabled>💾 Concluir (Exportar PDF)</button>
     </div>
 
     <div class="main-wrapper">
         <div id="viewer-container">
-            <div id="welcome-msg" style="text-align: center; margin-top: 100px; color: #666; max-width: 500px;">
+            <div id="welcome-msg">
                 <h2>Workflow Seguro Ater V19</h2>
                 <p><strong>Arraste um PDF Original</strong> para iniciar a edição ou revisão.</p>
-                <div style="text-align: left; background: #222; padding: 15px; border-radius: 8px; margin-top: 20px; font-size: 13px;">
+                <div class="instrucoes-box">
                     <p style="margin-top: 0; color: #007bff; font-weight: bold;">Como funciona a Revisão em Dupla?</p>
-                    <ol style="margin: 0; padding-left: 20px; color: #ccc;">
+                    <ol style="margin: 0; padding-left: 20px; color: var(--text-muted);">
                         <li>O Analista processa o PDF e clica em <strong>"Salvar Projeto"</strong>.</li>
                         <li>O Analista envia o PDF Original e o arquivo ".ater" gerado.</li>
                         <li>O Revisor abre o PDF Original aqui, depois importa o arquivo ".ater" em <strong>"Importar .ater"</strong>.</li>
@@ -186,6 +246,17 @@
 
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        // --- CONTROLE DE TEMAS ---
+        const seletorTema = document.getElementById('tema-seletor');
+        const temaSalvo = localStorage.getItem('ater_tema') || 'escuro';
+        document.body.setAttribute('data-theme', temaSalvo);
+        seletorTema.value = temaSalvo;
+
+        seletorTema.addEventListener('change', (e) => {
+            document.body.setAttribute('data-theme', e.target.value);
+            localStorage.setItem('ater_tema', e.target.value);
+        });
 
         // --- FUNÇÃO DE SEGURANÇA (XSS) ---
         function sanitizarHTML(str) {
@@ -254,7 +325,7 @@
         function salvarExcecoes() { localStorage.setItem('ater_excecoes', JSON.stringify([...TERMOS_IGNORADOS])); renderizarChips(); }
         function adicionarTermo(texto) {
             let formatado = texto.trim().toUpperCase().replace(/[.,]/g, '');
-            formatado = sanitizarHTML(formatado); // Proteção XSS
+            formatado = sanitizarHTML(formatado);
             
             if (formatado && !TERMOS_IGNORADOS.has(formatado)) { TERMOS_IGNORADOS.add(formatado); salvarExcecoes(); }
             UI.inputTermo.value = '';
@@ -279,7 +350,7 @@
             if (historicoTarjas.some(t => t.id === id)) return; 
             
             const hora = new Date().toLocaleTimeString('pt-BR');
-            const termoSeguro = sanitizarHTML(termo); // Proteção XSS
+            const termoSeguro = sanitizarHTML(termo);
             
             const registro = { 
                 id, type, pagina: pageIndex + 1, 
@@ -313,14 +384,14 @@
                     const item = document.createElement('div');
                     item.className = `historico-item ${registro.type}`;
                     item.id = `hist-${registro.id}`;
-                    let icone = '✏️', cor = '#ccc';
+                    let icone = '✏️', cor = 'var(--text-muted)';
                     if (registro.type === 'regex') { icone = '🤖'; cor = '#007bff'; }
                     else if (registro.type === 'custom') { icone = '🔍'; cor = '#ff9800'; }
                     item.innerHTML = `
                         <div style="display: flex; justify-content: space-between; align-items: center; padding-right: 20px;">
                             <span style="color: ${cor}; font-weight: bold;">${icone} ${registro.termo || 'Marcação Manual'}</span>
                         </div>
-                        <div style="font-size: 9px; color: #888;">Gerado às ${registro.hora}</div>
+                        <div style="font-size: 9px; color: var(--text-muted);">Gerado às ${registro.hora}</div>
                         <div class="hist-remove" onclick="removerTarjaPeloSidebar('${registro.id}')" title="Excluir tarja">×</div>
                     `;
                     groupDiv.appendChild(item);
